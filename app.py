@@ -129,7 +129,10 @@ with c1:
 
 with c2:
     st.subheader("Revenue by Product")
-    fig_pie = px.donut(
+    
+    # --- FIXED SECTION START ---
+    # Changed px.donut to px.pie with hole=0.5
+    fig_pie = px.pie(
         df_selection, 
         values='Revenue', 
         names='Product', 
@@ -137,6 +140,8 @@ with c2:
         color_discrete_sequence=chart_color_sequence,
         template="simple_white"
     )
+    # --- FIXED SECTION END ---
+    
     fig_pie.update_traces(textposition='inside', textinfo='percent+label')
     fig_pie.update_layout(showlegend=False)
     st.plotly_chart(fig_pie, use_container_width=True)
