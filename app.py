@@ -12,22 +12,33 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- CUSTOM CSS FOR PROFESSIONAL LOOK ---
-# This forces white background and styled cards for metrics
+# --- CUSTOM CSS FOR PROFESSIONAL UI ---
 st.markdown("""
 <style>
+    /* Force white background and professional font styles */
+    .stApp {
+        background-color: #FFFFFF;
+    }
+    [data-testid="stSidebar"] {
+        background-color: #F8F9FA;
+        border-right: 1px solid #E9ECEF;
+    }
     [data-testid="stMetricValue"] {
-        font-size: 24px;
+        font-size: 26px;
+        font-family: 'Segoe UI', sans-serif;
         color: #2C3E50;
     }
-    [data-testid="stMetricDelta"] {
-        font-size: 16px;
+    h1, h2, h3 {
+        color: #2C3E50;
+        font-family: 'Segoe UI', sans-serif;
     }
-    .stCard {
+    /* Style the metric cards */
+    div[data-testid="metric-container"] {
         background-color: #FFFFFF;
-        padding: 20px;
+        border: 1px solid #E9ECEF;
+        padding: 15px;
         border-radius: 5px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -36,28 +47,28 @@ st.markdown("""
 @st.cache_data
 def load_advanced_data():
     np.random.seed(42)
-    # Generate dates for the last 365 days, including hours for detail
+    # Generate dates for the last 365 days
     end_date = datetime.today()
     start_date = end_date - timedelta(days=365)
     
+    # 2500 Samples for density
+    n_samples = 2500
     date_range = pd.date_range(start=start_date, end=end_date, freq="H")
-    
-    # Select 2000 random timestamps
-    n_samples = 2000
     random_dates = np.random.choice(date_range, n_samples)
     
     products = np.random.choice(['SaaS License', 'Consulting', 'Maintenance', 'Hardware Bundle'], n_samples)
-    regions = np.random.choice(['North America', 'EMEA', 'APAC', 'LATAM'], n_samples)
+    # Using real country names for the Map
+    regions = np.random.choice(['United States', 'Germany', 'Japan', 'Brazil', 'United Kingdom', 'India'], n_samples)
     status = np.random.choice(['Completed', 'Pending', 'Refunded'], n_samples, p=[0.85, 0.1, 0.05])
     customer_type = np.random.choice(['Enterprise', 'SMB', 'Government'], n_samples)
     
-    revenue = np.random.randint(500, 10000, n_samples)
-    cost = revenue * np.random.uniform(0.4, 0.7, n_samples)
+    revenue = np.random.randint(500, 12000, n_samples)
+    cost = revenue * np.random.uniform(0.3, 0.65, n_samples)
     
     df = pd.DataFrame({
         'Date': random_dates,
         'Product': products,
-        'Region': regions,
+        'Country': regions, # Changed to Country for Map
         'Status': status,
         'Segment': customer_type,
         'Revenue': revenue,
@@ -68,166 +79,163 @@ def load_advanced_data():
     df['Margin %'] = (df['Profit'] / df['Revenue']) * 100
     df['Date'] = pd.to_datetime(df['Date'])
     df['Month'] = df['Date'].dt.to_period('M').astype(str)
-    df['DayOfWeek'] = df['Date'].dt.day_name()
-    df['Hour'] = df['Date'].dt.hour
     
     return df.sort_values('Date')
 
 df = load_advanced_data()
 
-# --- 2. SIDEBAR CONTROLS ---
-st.sidebar.title("Configuration")
+# --- 2. SIDEBAR CONFIGURATION ---
+st.sidebar.title("Analytics Configuration")
+
+# Section 1: Filters
+st.sidebar.subheader("Filter Parameters")
+country_filter = st.sidebar.multiselect("Country", df['Country'].unique(), default=df['Country'].unique())
+segment_filter = st.sidebar.multiselect("Segment", df['Segment'].unique(), default=df['Segment'].unique())
+
+# Section 2: Scenario Planner (New Feature)
 st.sidebar.markdown("---")
-
-# Filters
-region_filter = st.sidebar.multiselect("Region", df['Region'].unique(), default=df['Region'].unique())
-segment_filter = st.sidebar.multiselect("Customer Segment", df['Segment'].unique(), default=df['Segment'].unique())
-status_filter = st.sidebar.multiselect("Order Status", df['Status'].unique(), default=['Completed', 'Pending'])
-
-# Date Filter
-min_date = df['Date'].min().date()
-max_date = df['Date'].max().date()
-date_range = st.sidebar.date_input("Date Range", value=(min_date, max_date), min_value=min_date, max_value=max_date)
+st.sidebar.subheader("Scenario Simulator")
+st.sidebar.info("Adjust projections to see impact on potential revenue.")
+growth_rate = st.sidebar.slider("Projected Growth Rate (%)", min_value=-20, max_value=50, value=5, step=1)
+margin_impact = st.sidebar.slider("Cost Efficiency Improvement (%)", min_value=0, max_value=10, value=0, step=1)
 
 # Apply Filters
 mask = (
-    (df['Date'].dt.date >= date_range[0]) &
-    (df['Date'].dt.date <= date_range[1]) &
-    (df['Region'].isin(region_filter)) &
-    (df['Segment'].isin(segment_filter)) &
-    (df['Status'].isin(status_filter))
+    (df['Country'].isin(country_filter)) &
+    (df['Segment'].isin(segment_filter))
 )
 df_filtered = df[mask]
 
-# --- 3. DASHBOARD LOGIC ---
+# --- 3. DASHBOARD MAIN UI ---
 
 st.title("Enterprise Analytics Suite")
-st.markdown("Detailed breakdown of financial performance and operational metrics.")
+st.markdown(f"**Data Status:** {len(df_filtered)} records analyzed | **Last Refresh:** {datetime.now().strftime('%Y-%m-%d %H:%M')}")
 
-if df_filtered.empty:
-    st.error("No data found matching these filters.")
-    st.stop()
-
-# --- KPI SECTION WITH DELTAS ---
-# Logic: Compare selected period vs entire history average (simulated 'target')
+# KPI ROW (Updated with Projections)
 total_rev = df_filtered['Revenue'].sum()
+projected_rev = total_rev * (1 + growth_rate/100)
 total_profit = df_filtered['Profit'].sum()
-avg_margin = df_filtered['Margin %'].mean()
+# Logic: Improve margin by reducing cost
+projected_profit = total_profit * (1 + (growth_rate/100)) + (total_rev * (margin_impact/100))
 
-# Simulated previous period for "Delta" calculation
-prev_rev = total_rev * 0.92 
-prev_profit = total_profit * 0.88
-prev_margin = avg_margin - 1.2
+col1, col2, col3, col4 = st.columns(4)
 
-c1, c2, c3, c4 = st.columns(4)
-with c1:
-    st.metric("Total Revenue", f"${total_rev:,.0f}", f"{((total_rev-prev_rev)/prev_rev)*100:.1f}% vs last period")
-with c2:
-    st.metric("Gross Profit", f"${total_profit:,.0f}", f"{((total_profit-prev_profit)/prev_profit)*100:.1f}% vs last period")
-with c3:
-    st.metric("Avg Margin", f"{avg_margin:.1f}%", f"{avg_margin-prev_margin:.1f}% pts")
-with c4:
-    st.metric("Transaction Count", f"{len(df_filtered)}", "Active")
+with col1:
+    st.metric("Current Revenue", f"${total_rev:,.0f}")
+with col2:
+    st.metric("Projected Revenue", f"${projected_rev:,.0f}", f"{growth_rate}% Scenario")
+with col3:
+    st.metric("Current Profit", f"${total_profit:,.0f}")
+with col4:
+    st.metric("Projected Profit", f"${projected_profit:,.0f}", f"Efficiency +{margin_impact}%")
 
 st.markdown("---")
 
-# --- TABBED INTERFACE ---
-tab1, tab2, tab3 = st.tabs(["Overview", "Regional Intelligence", "Operational Detail"])
+# --- TABS FOR DETAILED ANALYSIS ---
+tab1, tab2, tab3 = st.tabs(["Financial Performance", "Geospatial Intelligence", "Statistical Distribution"])
 
-# TAB 1: OVERVIEW (Dual Axis Chart)
+# TAB 1: FINANCIALS (Dual Axis + Forecasting)
 with tab1:
-    st.subheader("Financial Trajectory")
+    st.subheader("Revenue vs Profit Trajectory")
     
-    # Group by week for cleaner chart
-    df_chart = df_filtered.copy()
-    df_chart['Week'] = df_chart['Date'].dt.to_period('W').dt.start_time
-    weekly = df_chart.groupby('Week')[['Revenue', 'Profit']].sum().reset_index()
+    # Aggregating data
+    df_filtered['Period'] = df_filtered['Date'].dt.to_period('M').dt.start_time
+    monthly = df_filtered.groupby('Period')[['Revenue', 'Profit']].sum().reset_index()
     
-    # Create Dual Axis Chart using Graph Objects
     fig_dual = go.Figure()
     
-    # Bar for Revenue
+    # Revenue Bar
     fig_dual.add_trace(go.Bar(
-        x=weekly['Week'], y=weekly['Revenue'], 
-        name='Revenue', marker_color='#2C3E50'
+        x=monthly['Period'], y=monthly['Revenue'], name='Actual Revenue',
+        marker_color='#2C3E50'
     ))
     
-    # Line for Profit
+    # Profit Line
     fig_dual.add_trace(go.Scatter(
-        x=weekly['Week'], y=weekly['Profit'], 
-        name='Profit', mode='lines+markers', 
-        marker_color='#18BC9C', yaxis='y2'
+        x=monthly['Period'], y=monthly['Profit'], name='Actual Profit',
+        mode='lines+markers', line=dict(color='#18BC9C', width=3), yaxis='y2'
     ))
     
+    # Projection Line (Dashed)
+    if growth_rate != 0:
+        fig_dual.add_trace(go.Scatter(
+            x=monthly['Period'], y=monthly['Revenue'] * (1 + growth_rate/100),
+            name=f'Projected Revenue ({growth_rate}%)',
+            line=dict(color='#E74C3C', dash='dot'), opacity=0.7
+        ))
+
     fig_dual.update_layout(
         template="simple_white",
-        yaxis=dict(title="Revenue ($)", showgrid=True),
+        yaxis=dict(title="Revenue ($)", showgrid=True, gridcolor='#F0F2F6'),
         yaxis2=dict(title="Profit ($)", overlaying='y', side='right', showgrid=False),
         hovermode="x unified",
         legend=dict(orientation="h", y=1.1)
     )
     st.plotly_chart(fig_dual, use_container_width=True)
-    
-    # Recent Transactions Table
-    st.subheader("Recent Transactions")
-    display_cols = ['Date', 'Product', 'Region', 'Segment', 'Revenue', 'Status']
-    st.dataframe(
-        df_filtered[display_cols].sort_values('Date', ascending=False).head(10),
-        use_container_width=True,
-        hide_index=True
-    )
 
-# TAB 2: REGIONAL (Sunburst & Breakdown)
+# TAB 2: GEOSPATIAL (Map)
 with tab2:
-    col_a, col_b = st.columns([1, 1])
+    st.subheader("Global Sales Footprint")
     
-    with col_a:
-        st.subheader("Regional Hierarchy")
-        st.markdown("*Click segments to drill down*")
-        # Sunburst: Region -> Country (simulated via Segment) -> Product
-        fig_sun = px.sunburst(
-            df_filtered, 
-            path=['Region', 'Segment', 'Product'], 
-            values='Revenue',
+    # Aggregate by country
+    country_data = df_filtered.groupby('Country')[['Revenue', 'Profit']].sum().reset_index()
+    
+    c1, c2 = st.columns([2, 1])
+    
+    with c1:
+        # Chloropleth Map
+        fig_map = px.choropleth(
+            country_data,
+            locations='Country',
+            locationmode='country names',
             color='Revenue',
+            hover_name='Country',
             color_continuous_scale='Blues',
+            template='simple_white',
+            title='Revenue Density by Country'
         )
-        fig_sun.update_layout(template="simple_white")
-        st.plotly_chart(fig_sun, use_container_width=True)
-        
-    with col_b:
-        st.subheader("Segment Analysis")
-        # Horizontal Bar Chart
-        fig_bar = px.bar(
-            df_filtered.groupby('Segment')['Revenue'].sum().reset_index(),
-            x='Revenue', y='Segment', orientation='h',
-            text_auto='.2s',
-            color_discrete_sequence=['#34495E'],
-            template="simple_white"
-        )
-        st.plotly_chart(fig_bar, use_container_width=True)
+        fig_map.update_geos(showframe=False, showcoastlines=True, projection_type='equirectangular')
+        fig_map.update_layout(margin={"r":0,"t":30,"l":0,"b":0})
+        st.plotly_chart(fig_map, use_container_width=True)
 
-# TAB 3: OPERATIONAL (Heatmap)
+    with c2:
+        # Data Table next to Map
+        st.markdown("#### Regional Metrics")
+        st.dataframe(
+            country_data.sort_values('Revenue', ascending=False).style.format({"Revenue": "${:,.0f}", "Profit": "${:,.0f}"}),
+            use_container_width=True,
+            hide_index=True
+        )
+
+# TAB 3: STATISTICAL DISTRIBUTION (Box Plot)
 with tab3:
-    st.subheader("Operational Heatmap: Sales Density")
-    st.markdown("Analyze peak transaction times by day of week and hour.")
+    st.subheader("Transaction Distribution & Outlier Detection")
+    st.markdown("Use this view to analyze the spread of deal sizes and identify anomalies in specific product lines.")
     
-    # Pivot for Heatmap
-    heatmap_data = df_filtered.groupby(['DayOfWeek', 'Hour'])['Revenue'].count().reset_index()
-    
-    # Order days correctly
-    days_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-    
-    fig_heat = px.density_heatmap(
-        heatmap_data, 
-        x='Hour', 
-        y='DayOfWeek', 
-        z='Revenue', 
-        color_continuous_scale='Greys',
-        category_orders={"DayOfWeek": days_order},
-        template="simple_white"
+    fig_box = px.box(
+        df_filtered,
+        x="Product",
+        y="Revenue",
+        color="Segment",
+        points="outliers", # Only show outlier dots
+        template="simple_white",
+        color_discrete_sequence=px.colors.qualitative.G10
     )
-    fig_heat.update_layout(xaxis_dtick=2) # Show every 2nd hour
-    st.plotly_chart(fig_heat, use_container_width=True)
-    
-    st.info("Insight: High density observed on Tuesday/Wednesday mornings suggests optimal time for maintenance downtime is weekends.")
+    fig_box.update_layout(yaxis_title="Transaction Value ($)", xaxis_title="Product Line")
+    st.plotly_chart(fig_box, use_container_width=True)
+
+# --- EXPORT SECTION ---
+st.markdown("---")
+st.subheader("Data Export")
+col_d1, col_d2 = st.columns([1, 4])
+with col_d1:
+    # CSV Download Button
+    csv = df_filtered.to_csv(index=False).encode('utf-8')
+    st.download_button(
+        label="📥 Download Report (CSV)",
+        data=csv,
+        file_name='executive_sales_report.csv',
+        mime='text/csv',
+    )
+with col_d2:
+    st.caption("Export contains all filtered records including raw timestamps, transaction IDs, and calculated margin metrics.")
