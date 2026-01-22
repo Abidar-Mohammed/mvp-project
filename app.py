@@ -10,7 +10,7 @@ from PIL import Image
 st.set_page_config(
     page_title="Executive Sales Hub",
     page_icon="💎",
-    layout="wide", # Mode large activé
+    layout="wide", # INDISPENSABLE
     initial_sidebar_state="expanded"
 )
 
@@ -25,18 +25,18 @@ st.markdown("""
         color: #333;
     }
 
-    /* --- LE FIX MAJEUR EST ICI : FORCER LA PLEINE LARGEUR --- */
+    /* PLEINE LARGEUR (FULL WIDTH) */
     .block-container {
         padding-top: 1rem;
         padding-bottom: 1rem;
-        padding-left: 1rem;
-        padding-right: 1rem;
-        max-width: 100%; /* Utilise 100% de l'écran sans restriction */
+        padding-left: 2rem;
+        padding-right: 2rem;
+        max-width: 100%;
     }
 
-    /* --- HEADER AVEC IMAGE --- */
+    /* HEADER AVEC IMAGE */
     .main-header-card {
-        background: linear-gradient(rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.8)),
+        background: linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.85)),
                     url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop'); 
         background-size: cover;
         background-position: center;
@@ -64,7 +64,7 @@ st.markdown("""
         font-weight: 300;
     }
 
-    /* --- KPIs (Bulles) --- */
+    /* KPIs */
     .kpi-card {
         padding: 20px 10px;
         border-radius: 15px;
@@ -83,7 +83,7 @@ st.markdown("""
     .kpi-value { font-size: 28px; font-weight: 700; color: #2C3E50; margin: 0; }
     .kpi-label { font-size: 12px; font-weight: 600; color: #5D6D7E; text-transform: uppercase; letter-spacing: 1px; }
 
-    /* --- TITRES --- */
+    /* TITRES */
     .custom-title {
         font-size: 18px;
         font-weight: 600;
@@ -100,7 +100,7 @@ st.markdown("""
     .title-green { border-left-color: #27AE60; }
     .title-purple { border-left-color: #8E44AD; }
 
-    /* --- GRAPHIQUES --- */
+    /* GRAPHIQUES */
     .stPlotlyChart {
         background-color: #FFFFFF;
         border-radius: 15px;
@@ -202,25 +202,23 @@ with c4:
 
 st.write("") 
 
-# --- ROW 2: CARTE & DONUT (LARGEUR MAXIMISÉE) ---
+# --- ROW 2: CARTE (GRANDE) & DONUT (PETIT) ---
 
-# CHANGEMENT CLÉ : 50% / 50% (Ratios égaux)
-# Cela force la carte à être plus large (donc plus zoomée)
-# ET cela donne au cercle tout l'espace nécessaire.
-col_L, col_R = st.columns([1, 1]) 
+# CHANGEMENT ICI : Ratio [3, 1] (75% pour la carte / 25% pour le cercle)
+col_L, col_R = st.columns([3, 1]) 
 
 with col_L:
     st.markdown('<div class="custom-title title-blue">🌍 Geographic Sales Distribution</div>', unsafe_allow_html=True)
     map_data = df_filtered.groupby('Region')['Sales'].sum().reset_index()
     fig_map = px.choropleth(map_data, locations="Region", locationmode="country names", color="Sales", color_continuous_scale="Blues", template="simple_white")
     
-    # Réglage des marges à 0 pour utiliser tout l'espace de la colonne
+    # HAUTEUR AUGMENTÉE A 500px pour profiter de la largeur
     fig_map.update_geos(showframe=False, projection_type='natural earth', bgcolor='rgba(0,0,0,0)')
-    fig_map.update_layout(margin={"r":0,"t":0,"l":0,"b":0}, paper_bgcolor='rgba(0,0,0,0)', height=450)
+    fig_map.update_layout(margin={"r":0,"t":0,"l":0,"b":0}, paper_bgcolor='rgba(0,0,0,0)', height=500)
     st.plotly_chart(fig_map, use_container_width=True)
 
 with col_R:
-    st.markdown('<div class="custom-title title-orange">📦 Sales by Category</div>', unsafe_allow_html=True)
+    st.markdown('<div class="custom-title title-orange">📦 Categories</div>', unsafe_allow_html=True)
     
     fig_donut = px.pie(
         df_filtered, 
@@ -230,17 +228,16 @@ with col_R:
         color_discrete_sequence=px.colors.qualitative.Bold, 
         template="simple_white"
     )
-    # inside = texte DANS le diagramme pour ne pas dépasser
+    # Affichage compact pour petit espace
     fig_donut.update_traces(textposition='inside', textinfo='percent+label')
     
-    # automargin=True est crucial : Plotly calcule l'espace pour ne pas couper
     fig_donut.update_layout(
         showlegend=False,
-        margin=dict(t=20, b=20, l=20, r=20),
+        margin=dict(t=10, b=10, l=10, r=10),
         paper_bgcolor='rgba(0,0,0,0)',
-        height=450,
-        uniformtext_minsize=12, 
-        uniformtext_mode='hide' # Cache le texte s'il est trop petit pour rentrer (évite le débordement moche)
+        height=500, # Hauteur alignée avec la carte
+        uniformtext_minsize=10, 
+        uniformtext_mode='hide'
     )
     st.plotly_chart(fig_donut, use_container_width=True)
 
