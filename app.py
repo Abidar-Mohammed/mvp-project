@@ -5,289 +5,260 @@ import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
 from PIL import Image
-import os
 
-# --- 1. CONFIGURATION DE LA PAGE ---
+# --- 1. PAGE CONFIGURATION ---
 st.set_page_config(
-    page_title="Nexus Analytics | Pro",
-    page_icon="💎",
+    page_title="Compagnie Dashboard",
+    page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# --- 2. CSS AVANCÉ (EFFET "BULLES" & DESIGN) ---
+# --- 2. AESTHETIC CSS (Bubbles & Colors) ---
 st.markdown("""
 <style>
-    /* Import police Google (Poppins) pour un look moderne */
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+    /* Professional Font */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
 
     html, body, [class*="css"]  {
-        font-family: 'Poppins', sans-serif;
-        background-color: #F0F2F5; /* Fond gris très doux */
+        font-family: 'Inter', sans-serif;
+        background-color: #F4F6F9;
+        color: #333;
     }
 
-    /* --- STYLE DES "BULLES" (CARTES) --- */
-    /* On cible les conteneurs de graphiques et métriques pour les arrondir */
-    .stPlotlyChart, div[data-testid="metric-container"] {
+    /* --- BUBBLE EFFECT (Card Design) --- */
+    .stPlotlyChart, div[data-testid="metric-container"], div.stDataFrame {
         background-color: #FFFFFF;
-        border-radius: 20px; /* L'effet "Boule/Arrondi" */
+        border-radius: 15px;
         padding: 15px;
-        box-shadow: 0 10px 20px rgba(0,0,0,0.05); /* Ombre douce 3D */
-        transition: transform 0.3s ease; /* Petit effet d'animation au survol */
-        border: 1px solid #FFFFFF;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        border: 1px solid #EFF2F7;
+        transition: all 0.3s ease;
     }
 
-    /* Effet "Pop" quand on passe la souris dessus */
-    div[data-testid="metric-container"]:hover, .stPlotlyChart:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 15px 30px rgba(0,0,0,0.1);
-        border: 1px solid #27AE60;
+    /* Hover Effect */
+    .stPlotlyChart:hover, div[data-testid="metric-container"]:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        border-color: #3498DB;
     }
 
-    /* --- COULEURS DU SIDEBAR --- */
+    /* --- SIDEBAR STYLING --- */
     [data-testid="stSidebar"] {
         background-color: #FFFFFF;
-        border-right: 1px solid #E0E0E0;
+        border-right: 1px solid #E1E4E8;
     }
     
-    /* Titres Sidebar en dégradé */
-    [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3 {
-        background: -webkit-linear-gradient(45deg, #11998e, #38ef7d);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        font-weight: 800;
+    /* Sidebar Headers */
+    [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h3 {
+        color: #2C3E50;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 13px;
+        letter-spacing: 1px;
     }
 
-    /* --- HEADER (EN-TÊTE) --- */
-    .header-style {
-        background: linear-gradient(90deg, #2C3E50 0%, #4CA1AF 100%);
-        padding: 20px;
-        border-radius: 25px;
-        color: white;
-        margin-bottom: 30px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        text-align: center;
-    }
-    
-    /* Style des gros chiffres (Metrics) */
+    /* --- METRIC COLORS --- */
     [data-testid="stMetricValue"] {
-        font-size: 32px;
+        font-size: 28px;
         font-weight: 700;
         color: #2C3E50;
     }
-    
-    /* Petits labels */
     [data-testid="stMetricLabel"] {
         font-size: 14px;
-        color: #888;
-        font-weight: 500;
+        color: #7F8C8D;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# --- 3. GÉNÉRATION DE DONNÉES ---
+# --- 3. DATA GENERATION (MATCHING YOUR SCHEMA) ---
 @st.cache_data
 def load_data():
+    # Simulating the EXACT columns I asked you to create
     np.random.seed(42)
     end_date = datetime.today()
     start_date = end_date - timedelta(days=365)
     
-    n_samples = 3000
-    date_range = pd.date_range(start=start_date, end=end_date, freq="H")
+    n_samples = 2000
+    date_range = pd.date_range(start=start_date, end=end_date, freq="D")
     random_dates = np.random.choice(date_range, n_samples)
     
-    products = np.random.choice(['Enterprise Suite X1', 'Cloud Storage Pro', 'CyberSecurity Plus', 'AI Consultant Hour'], n_samples)
-    countries = np.random.choice(['United States', 'France', 'Germany', 'Japan', 'Brazil', 'United Kingdom', 'India', 'Canada'], n_samples)
-    status = np.random.choice(['Confirmed', 'Pending', 'Negotiation', 'Lost'], n_samples, p=[0.7, 0.15, 0.1, 0.05])
-    segments = np.random.choice(['Fortune 500', 'SMB', 'Government', 'Startup'], n_samples)
+    # 1. Product & Category
+    categories = ['Electronics', 'Furniture', 'Office Supplies', 'Technology']
+    products_list = ['SmartPhone X', 'Ergo Chair', 'Desk Lamp', 'Laptop Pro', 'Monitor 4K', 'USB Hub']
     
-    revenue = np.random.randint(2000, 25000, n_samples)
-    cost = revenue * np.random.uniform(0.3, 0.7, n_samples)
-    satisfaction = np.random.randint(60, 100, n_samples) # Score de 0 à 100
+    cat_data = np.random.choice(categories, n_samples)
+    prod_data = np.random.choice(products_list, n_samples)
+    
+    # 2. Region (Countries for the Map)
+    regions = np.random.choice(['USA', 'France', 'Germany', 'United Kingdom', 'Canada', 'Spain', 'Italy'], n_samples)
+    
+    # 3. Customer Type
+    cust_type = np.random.choice(['Corporate', 'Consumer', 'Home Office'], n_samples)
+    
+    # 4. Financials
+    sales = np.random.randint(100, 5000, n_samples)
+    profit = sales * np.random.uniform(0.1, 0.4, n_samples) # Profit is 10% to 40% of sales
     
     df = pd.DataFrame({
         'Date': random_dates,
-        'Product': products,
-        'Country': countries,
-        'Status': status,
-        'Segment': segments,
-        'Revenue': revenue,
-        'Cost': cost,
-        'CSAT': satisfaction
+        'Category': cat_data,
+        'Product': prod_data,
+        'Region': regions,
+        'Customer_Type': cust_type,
+        'Sales': sales,
+        'Profit': profit
     })
     
-    df['Profit'] = df['Revenue'] - df['Cost']
-    df['Margin (%)'] = (df['Profit'] / df['Revenue']) * 100
     df['Date'] = pd.to_datetime(df['Date'])
-    
     return df.sort_values('Date')
 
 df = load_data()
 
-# --- 4. SIDEBAR AVEC LOGO ---
-try:
-    # On cherche le fichier LOGO.jpeg
-    image = Image.open('LOGO.jpeg')
-    st.sidebar.image(image, use_container_width=True)
-except FileNotFoundError:
-    # Fallback si le fichier n'est pas encore là
-    st.sidebar.warning("⚠️ Fichier 'LOGO.jpeg' introuvable.")
-    st.sidebar.info("Mets le fichier dans le dossier pour voir le logo !")
+# --- 4. SIDEBAR (LOGO & FILTERS) ---
+with st.sidebar:
+    # LOGO HANDLING (Smaller size as requested)
+    try:
+        # Looking for LOGO.jpeg
+        image = Image.open('LOGO.jpeg')
+        # width=100 makes it small and elegant
+        st.image(image, width=120) 
+    except FileNotFoundError:
+        st.warning("⚠️ Add 'LOGO.jpeg'")
+    
+    st.write("## COMPAGNIE ANALYTICS")
+    st.markdown("---")
+    
+    st.write("### ⚙️ Filters")
+    
+    # Date Filter
+    min_date = df['Date'].min()
+    max_date = df['Date'].max()
+    date_range = st.date_input("Select Period", value=(min_date, max_date))
+    
+    # Category Filter
+    selected_cat = st.multiselect("Category", df['Category'].unique(), default=df['Category'].unique())
+    
+    # Region Filter
+    selected_region = st.multiselect("Region", df['Region'].unique(), default=df['Region'].unique())
 
-st.sidebar.markdown("---")
-st.sidebar.title("🎛️ Panneau de Contrôle")
-
-# Filtres
-date_range = st.sidebar.date_input("📅 Période", value=(df['Date'].min(), df['Date'].max()))
-country_filter = st.sidebar.multiselect("🌍 Pays", df['Country'].unique(), default=['United States', 'France', 'Germany'])
-segment_filter = st.sidebar.multiselect("🏢 Segment", df['Segment'].unique(), default=df['Segment'].unique())
-
+# FILTERING LOGIC
 mask = (
     (df['Date'].dt.date >= date_range[0]) &
     (df['Date'].dt.date <= date_range[1]) &
-    (df['Country'].isin(country_filter)) &
-    (df['Segment'].isin(segment_filter))
+    (df['Category'].isin(selected_cat)) &
+    (df['Region'].isin(selected_region))
 )
 df_filtered = df[mask]
 
+# --- 5. MAIN DASHBOARD CONTENT ---
+
+st.title("Compagnie | Sales Performance")
+st.markdown(f"**Data Overview:** {len(df_filtered)} transactions analyzed.")
+st.markdown("---")
+
 if df_filtered.empty:
-    st.error("🚫 Oups ! Aucune donnée avec ces filtres.")
+    st.error("No data available based on current filters.")
     st.stop()
 
-# --- 5. EN-TÊTE PRINCIPALE ---
-st.markdown("""
-<div class="header-style">
-    <h1>🚀 Nexus Command Center</h1>
-    <p>Pilotage Stratégique & Analyse de Performance IA</p>
-</div>
-""", unsafe_allow_html=True)
-
-# --- 6. KPIs (Les Bulles Chiffrées) ---
-total_rev = df_filtered['Revenue'].sum()
+# --- ROW 1: KPIs (Clean & Factual) ---
+total_sales = df_filtered['Sales'].sum()
 total_profit = df_filtered['Profit'].sum()
-avg_margin = df_filtered['Margin (%)'].mean()
-avg_csat = df_filtered['CSAT'].mean()
+profit_margin = (total_profit / total_sales) * 100
+avg_ticket = df_filtered['Sales'].mean()
 
 c1, c2, c3, c4 = st.columns(4)
 
 with c1:
-    st.metric("💸 Chiffre d'Affaires", f"${total_rev:,.0f}", "+12% ↗")
+    st.metric("Total Revenue", f"${total_sales:,.0f}", delta="vs Year Avg")
 with c2:
-    st.metric("💰 Bénéfice Net", f"${total_profit:,.0f}", "+8% ↗")
+    st.metric("Total Profit", f"${total_profit:,.0f}", delta=f"{profit_margin:.1f}% Margin")
 with c3:
-    st.metric("📊 Marge Moyenne", f"{avg_margin:.1f}%", "-2% ↘")
+    st.metric("Avg Order Value", f"${avg_ticket:.0f}")
 with c4:
-    st.metric("❤️ Satisfaction Client", f"{avg_csat:.0f}/100", "Top !")
+    st.metric("Transactions", f"{len(df_filtered):,}")
 
-st.write("") # Espace
+st.write("") # Spacer
 
-# --- 7. CONTENU VISUEL (Les Bulles Graphiques) ---
+# --- ROW 2: MAP & TREEMAP (Visuals) ---
+col_left, col_right = st.columns([2, 1])
 
-# LIGNE 1 : CARTE + TUNNEL DE VENTE
-col_L1_1, col_L1_2 = st.columns([2, 1])
-
-with col_L1_1:
-    st.subheader("🌍 Intensité des Ventes (Monde)")
-    # Carte
+with col_left:
+    st.subheader("🌍 Geographic Distribution")
+    # Aggregating for Map
+    map_data = df_filtered.groupby('Region')['Sales'].sum().reset_index()
+    
     fig_map = px.choropleth(
-        df_filtered.groupby('Country')['Revenue'].sum().reset_index(),
-        locations="Country",
+        map_data,
+        locations="Region",
         locationmode="country names",
-        color="Revenue",
-        color_continuous_scale="Tealgrn", # Dégradé Vert/Bleu sympa
+        color="Sales",
+        # Beautiful Teal/Blue Scale
+        color_continuous_scale="Teal", 
         template="simple_white"
     )
     fig_map.update_geos(showframe=False, projection_type='natural earth')
-    fig_map.update_layout(margin={"r":0,"t":0,"l":0,"b":0}, paper_bgcolor='rgba(0,0,0,0)')
+    fig_map.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
     st.plotly_chart(fig_map, use_container_width=True)
 
-with col_L1_2:
-    st.subheader("🔻 Tunnel de Vente")
-    # Graphique en Entonnoir (Funnel)
-    funnel_data = df_filtered.groupby('Status')['Revenue'].count().reset_index().sort_values('Revenue', ascending=False)
-    fig_funnel = px.funnel(
-        funnel_data, 
-        x='Revenue', 
-        y='Status',
-        color='Status',
-        color_discrete_sequence=px.colors.qualitative.Pastel # Couleurs douces
+with col_right:
+    st.subheader("📦 Category Mix")
+    # Treemap replaces the unrealistic Funnel
+    # It shows which Categories are biggest
+    fig_tree = px.treemap(
+        df_filtered,
+        path=['Category', 'Product'],
+        values='Sales',
+        color='Sales',
+        color_continuous_scale='Blues', # Clean Blue gradient
+        template="simple_white"
     )
-    fig_funnel.update_layout(showlegend=False, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
-    st.plotly_chart(fig_funnel, use_container_width=True)
+    fig_tree.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
+    st.plotly_chart(fig_tree, use_container_width=True)
 
-# LIGNE 2 : TENDANCES + JAUGE
-col_L2_1, col_L2_2 = st.columns([2, 1])
+# --- ROW 3: TRENDS & SCATTER (Analysis) ---
+col3_1, col3_2 = st.columns(2)
 
-with col_L2_1:
-    st.subheader("📈 Évolution Financière & Prédictions")
-    # Graphique combiné (Aire + Ligne)
-    daily = df_filtered.set_index('Date').resample('W')[['Revenue', 'Profit']].sum().reset_index()
+with col3_1:
+    st.subheader("📈 Sales Trend Over Time")
+    # Group by Month
+    df_filtered['Month'] = df_filtered['Date'].dt.to_period('M').dt.start_time
+    trend_data = df_filtered.groupby('Month')['Sales'].sum().reset_index()
     
-    fig_trend = go.Figure()
-    fig_trend.add_trace(go.Scatter(
-        x=daily['Date'], y=daily['Revenue'], fill='tozeroy', 
-        name='Revenu', line=dict(color='#1ABC9C', width=0) # Vert d'eau
-    ))
-    fig_trend.add_trace(go.Scatter(
-        x=daily['Date'], y=daily['Profit'], 
-        name='Profit', line=dict(color='#2C3E50', width=3) # Bleu foncé
-    ))
-    fig_trend.update_layout(
-        template="simple_white", 
-        hovermode="x unified",
-        paper_bgcolor='rgba(0,0,0,0)',
-        legend=dict(orientation="h", y=1.1)
+    fig_line = px.area(
+        trend_data, 
+        x='Month', 
+        y='Sales',
+        line_shape='spline', # Makes the line curved/smooth
+        color_discrete_sequence=['#3498DB'] # Professional Blue
     )
-    st.plotly_chart(fig_trend, use_container_width=True)
+    fig_line.update_layout(template="simple_white", yaxis_title="Revenue ($)")
+    st.plotly_chart(fig_line, use_container_width=True)
 
-with col_L2_2:
-    st.subheader("🎯 Objectif Annuel")
-    # Jauge (Gauge Chart)
-    current_val = total_rev
-    target_val = 60000000 # Exemple d'objectif : 60 Millions
-    
-    fig_gauge = go.Figure(go.Indicator(
-        mode = "gauge+number+delta",
-        value = current_val,
-        domain = {'x': [0, 1], 'y': [0, 1]},
-        title = {'text': "Progression vs Cible"},
-        delta = {'reference': target_val},
-        gauge = {
-            'axis': {'range': [None, target_val]},
-            'bar': {'color': "#27AE60"},
-            'steps' : [
-                {'range': [0, target_val*0.5], 'color': "#E8F8F5"},
-                {'range': [target_val*0.5, target_val*0.8], 'color': "#D1F2EB"}
-            ],
-            'threshold' : {'line': {'color': "red", 'width': 4}, 'thickness': 0.75, 'value': target_val}
-        }
-    ))
-    fig_gauge.update_layout(paper_bgcolor='rgba(0,0,0,0)', height=300)
-    st.plotly_chart(fig_gauge, use_container_width=True)
+with col3_2:
+    st.subheader("💎 Profitability Analysis")
+    # Scatter plot: Sales vs Profit (Real analysis of data)
+    fig_scat = px.scatter(
+        df_filtered,
+        x="Sales",
+        y="Profit",
+        color="Category",
+        size="Sales", # Bubble size = Sales amount
+        opacity=0.6,
+        template="simple_white",
+        color_discrete_sequence=px.colors.qualitative.Bold # Nice distinct colors
+    )
+    fig_scat.update_layout(yaxis_title="Profit ($)", xaxis_title="Sales Amount ($)")
+    st.plotly_chart(fig_scat, use_container_width=True)
 
-# LIGNE 3 : DÉTAILS PRODUITS (TABLEAU AVANCÉ)
-st.subheader("📦 Top Produits (Détails)")
-prod_stats = df_filtered.groupby('Product').agg(
-    CA_Total=('Revenue', 'sum'),
-    Marge_Moy=('Margin (%)', 'mean'),
-    Ventes=('Date', 'count')
-).reset_index()
+# --- ROW 4: RAW DATA ---
+with st.expander("📂 View Raw Transaction Data"):
+    st.dataframe(
+        df_filtered.sort_values('Date', ascending=False),
+        use_container_width=True,
+        hide_index=True
+    )
 
-st.dataframe(
-    prod_stats.sort_values('CA_Total', ascending=False),
-    column_config={
-        "CA_Total": st.column_config.ProgressColumn("Chiffre d'Affaires", format="$%f", min_value=0, max_value=int(prod_stats['CA_Total'].max())),
-        "Marge_Moy": st.column_config.NumberColumn("Marge", format="%.1f %%"),
-        "Ventes": st.column_config.NumberColumn("Volume", format="%d 🛒")
-    },
-    use_container_width=True,
-    hide_index=True
-)
-
-# PIED DE PAGE AVEC PETIT EFFET
+# Footer
 st.markdown("---")
-st.markdown("""
-<div style="text-align: center; color: #888; padding: 20px;">
-    ✨ <b>Nexus Analytics v4.0</b> | Design par IA | 🔒 Données Sécurisées
-</div>
-""", unsafe_allow_html=True)
+st.markdown("<center style='color:#888;'>Compagnie Analytics System | Powered by Python</center>", unsafe_allow_html=True)
