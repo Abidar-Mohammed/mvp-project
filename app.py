@@ -14,75 +14,87 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- 2. CSS ESTHÉTIQUE ---
+# --- 2. CSS ESTHÉTIQUE (LE NOUVEAU HEADER EST ICI) ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
 
     html, body, [class*="css"]  {
         font-family: 'Poppins', sans-serif;
-        background-color: #F0F2F5; /* Gris très léger pour le fond global */
+        background-color: #F4F7F6;
         color: #333;
     }
 
-    /* --- NOUVEAU HEADER (Dark Premium Theme) --- */
+    /* --- NOUVEAU HEADER AVEC IMAGE D'ARRIÈRE-PLAN --- */
     .main-header-card {
-        background: linear-gradient(90deg, #141E30 0%, #243B55 100%); /* Dégradé Sombre */
-        border-radius: 20px;
-        padding: 30px 20px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        /* Astuce CSS : On met un dégradé semi-transparent PAR-DESSUS l'image pour que le texte reste lisible */
+        background: linear-gradient(rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.8)),
+                    url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop'); 
+        background-size: cover; /* L'image couvre toute la zone */
+        background-position: center center; /* Centrée */
+        border-radius: 25px;
+        padding: 50px 20px; /* Plus de hauteur pour l'impact visuel */
+        box-shadow: 0 15px 30px rgba(0,0,0,0.2);
         text-align: center;
-        margin-bottom: 25px;
-        color: white; /* Texte blanc */
+        margin-bottom: 30px;
+        color: #FFFFFF; /* Texte blanc obligatoire sur fond sombre */
+        border: 1px solid #2C3E50;
     }
     .main-header-title {
-        font-size: 40px;
-        font-weight: 700;
+        font-size: 48px; /* Titre plus grand */
+        font-weight: 800;
         color: #FFFFFF;
         margin: 0;
         text-transform: uppercase;
-        letter-spacing: 2px;
+        letter-spacing: 3px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3); /* Petite ombre pour faire ressortir le texte */
     }
     .main-header-subtitle {
-        font-size: 16px;
-        color: #AAB7B8; /* Gris clair pour le sous-titre */
-        margin-top: 8px;
-        font-weight: 300;
+        font-size: 18px;
+        color: #E0E0E0; /* Gris très clair */
+        margin-top: 15px;
+        font-weight: 400;
+        letter-spacing: 1px;
     }
 
     /* --- KPIs (Bulles Colorées) --- */
     .kpi-card {
-        padding: 20px 10px;
-        border-radius: 18px;
+        padding: 25px 15px;
+        border-radius: 20px;
         text-align: center;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        margin-bottom: 15px;
+        box-shadow: 0 8px 15px rgba(0,0,0,0.05);
+        margin-bottom: 20px;
         border: none;
-        transition: transform 0.2s ease;
+        transition: transform 0.3s ease;
+        color: #2C3E50;
     }
-    .kpi-card:hover { transform: scale(1.02); }
+    .kpi-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
     
-    .card-blue { background: linear-gradient(135deg, #EBF5FB 0%, #D6EAF8 100%); }
-    .card-green { background: linear-gradient(135deg, #E9F7EF 0%, #D4EFDF 100%); }
-    .card-orange { background: linear-gradient(135deg, #FEF9E7 0%, #FDEBD0 100%); }
-    .card-purple { background: linear-gradient(135deg, #F5EEF8 0%, #EBDEF0 100%); }
+    /* Arrière-plans Pastels */
+    .card-blue { background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%); }
+    .card-green { background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%); }
+    .card-orange { background: linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%); }
+    .card-purple { background: linear-gradient(135deg, #F3E5F5 0%, #E1BEE7 100%); }
 
-    .kpi-value { font-size: 32px; font-weight: 700; color: #2C3E50; margin: 0; }
-    .kpi-label { font-size: 13px; font-weight: 600; color: #5D6D7E; text-transform: uppercase; letter-spacing: 1px; }
+    .kpi-value { font-size: 36px; font-weight: 700; color: #2C3E50; margin: 5px 0; }
+    .kpi-label { font-size: 13px; font-weight: 600; color: #546E7A; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8; }
 
     /* --- TITRES DE SECTION --- */
     .custom-title {
-        font-size: 18px;
+        font-size: 20px;
         font-weight: 600;
-        color: #34495E;
-        padding: 10px 20px;
+        color: #2C3E50;
+        padding: 12px 20px;
         background-color: #FFFFFF;
         border-radius: 12px;
         margin-bottom: 15px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.03);
-        border-left: 5px solid #ccc;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border-left: 6px solid #ccc;
     }
-    .title-blue { border-left-color: #3498DB; }
+    .title-blue { border-left-color: #2980B9; }
     .title-orange { border-left-color: #E67E22; }
     .title-green { border-left-color: #27AE60; }
     .title-purple { border-left-color: #8E44AD; }
@@ -91,11 +103,13 @@ st.markdown("""
     .stPlotlyChart {
         background-color: #FFFFFF;
         border-radius: 20px;
-        padding: 10px; /* Padding réduit pour laisser place au graphique */
+        padding: 15px;
         box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        border: 1px solid #F0F0F0;
     }
     
     [data-testid="stSidebar"] { background-color: #FFFFFF; }
+    .streamlit-expanderHeader { background-color: #FFFFFF; border-radius: 10px; font-weight: 600; }
 
 </style>
 """, unsafe_allow_html=True)
@@ -159,7 +173,7 @@ df_filtered = df[mask]
 
 # --- 5. DASHBOARD PRINCIPAL ---
 
-# NOUVEAU HEADER PREMIUM (FOND SOMBRE)
+# NOUVEAU HEADER AVEC IMAGE D'ARRIÈRE-PLAN
 st.markdown("""
 <div class="main-header-card">
     <h1 class="main-header-title">EXECUTIVE SALES HUB</h1>
@@ -190,11 +204,8 @@ with c4:
 
 st.write("") 
 
-# --- ROW 2: CARTE & DONUT (ESPACE ÉLARGI POUR LE CERCLE) ---
-
-# CHANGEMENT ICI : J'ai mis [3, 2] au lieu de [2, 1]. 
-# Cela donne beaucoup plus de largeur (40%) à la colonne de droite (Donut).
-col_L, col_R = st.columns([3, 2]) 
+# --- ROW 2: CARTE & DONUT (CERCLE CORRIGÉ) ---
+col_L, col_R = st.columns([3, 2])
 
 with col_L:
     st.markdown('<div class="custom-title title-blue">🌍 Geographic Sales Distribution</div>', unsafe_allow_html=True)
@@ -207,20 +218,19 @@ with col_L:
 with col_R:
     st.markdown('<div class="custom-title title-orange">📦 Sales by Category</div>', unsafe_allow_html=True)
     
+    # MODIFICATION ICI : hole=0.4 (au lieu de 0.6)
     fig_donut = px.pie(
         df_filtered, 
         values='Sales', 
         names='Category', 
-        hole=0.6, 
+        hole=0.4, # Le trou est plus petit, donc l'anneau est plus épais
         color_discrete_sequence=px.colors.qualitative.Bold, 
         template="simple_white"
     )
     fig_donut.update_traces(textposition='inside', textinfo='percent+label')
     
-    # CORRECTION DES MARGES : Marges mises à 0 pour utiliser tout l'espace
-    # La légende est positionnée pour ne pas écraser le graphique
     fig_donut.update_layout(
-        showlegend=False, # J'ai masqué la légende externe car les labels sont DANS le cercle (plus propre)
+        showlegend=False,
         margin=dict(t=10, b=10, l=10, r=10),
         paper_bgcolor='rgba(0,0,0,0)',
         height=400
