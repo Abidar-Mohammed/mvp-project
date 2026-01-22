@@ -10,11 +10,11 @@ from PIL import Image
 st.set_page_config(
     page_title="Executive Sales Hub",
     page_icon="💎",
-    layout="wide",
+    layout="wide", # Mode large activé
     initial_sidebar_state="expanded"
 )
 
-# --- 2. CSS ESTHÉTIQUE (LE NOUVEAU HEADER EST ICI) ---
+# --- 2. CSS "ULTRA WIDE" & DESIGN ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
@@ -25,76 +25,77 @@ st.markdown("""
         color: #333;
     }
 
-    /* --- NOUVEAU HEADER AVEC IMAGE D'ARRIÈRE-PLAN --- */
+    /* --- LE FIX MAJEUR EST ICI : FORCER LA PLEINE LARGEUR --- */
+    .block-container {
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+        padding-left: 1rem;
+        padding-right: 1rem;
+        max-width: 100%; /* Utilise 100% de l'écran sans restriction */
+    }
+
+    /* --- HEADER AVEC IMAGE --- */
     .main-header-card {
-        /* Astuce CSS : On met un dégradé semi-transparent PAR-DESSUS l'image pour que le texte reste lisible */
         background: linear-gradient(rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.8)),
                     url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop'); 
-        background-size: cover; /* L'image couvre toute la zone */
-        background-position: center center; /* Centrée */
-        border-radius: 25px;
-        padding: 50px 20px; /* Plus de hauteur pour l'impact visuel */
-        box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+        background-size: cover;
+        background-position: center;
+        border-radius: 20px;
+        padding: 40px 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         text-align: center;
-        margin-bottom: 30px;
-        color: #FFFFFF; /* Texte blanc obligatoire sur fond sombre */
+        margin-bottom: 25px;
+        color: #FFFFFF;
         border: 1px solid #2C3E50;
     }
     .main-header-title {
-        font-size: 48px; /* Titre plus grand */
+        font-size: 40px;
         font-weight: 800;
         color: #FFFFFF;
         margin: 0;
         text-transform: uppercase;
         letter-spacing: 3px;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.3); /* Petite ombre pour faire ressortir le texte */
+        text-shadow: 0 2px 10px rgba(0,0,0,0.5);
     }
     .main-header-subtitle {
-        font-size: 18px;
-        color: #E0E0E0; /* Gris très clair */
-        margin-top: 15px;
-        font-weight: 400;
-        letter-spacing: 1px;
+        font-size: 16px;
+        color: #BDC3C7;
+        margin-top: 10px;
+        font-weight: 300;
     }
 
-    /* --- KPIs (Bulles Colorées) --- */
+    /* --- KPIs (Bulles) --- */
     .kpi-card {
-        padding: 25px 15px;
-        border-radius: 20px;
+        padding: 20px 10px;
+        border-radius: 15px;
         text-align: center;
-        box-shadow: 0 8px 15px rgba(0,0,0,0.05);
-        margin-bottom: 20px;
-        border: none;
-        transition: transform 0.3s ease;
-        color: #2C3E50;
-    }
-    .kpi-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
-    
-    /* Arrière-plans Pastels */
-    .card-blue { background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%); }
-    .card-green { background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%); }
-    .card-orange { background: linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%); }
-    .card-purple { background: linear-gradient(135deg, #F3E5F5 0%, #E1BEE7 100%); }
-
-    .kpi-value { font-size: 36px; font-weight: 700; color: #2C3E50; margin: 5px 0; }
-    .kpi-label { font-size: 13px; font-weight: 600; color: #546E7A; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8; }
-
-    /* --- TITRES DE SECTION --- */
-    .custom-title {
-        font-size: 20px;
-        font-weight: 600;
-        color: #2C3E50;
-        padding: 12px 20px;
-        background-color: #FFFFFF;
-        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
         margin-bottom: 15px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        border-left: 6px solid #ccc;
+        transition: transform 0.2s;
     }
-    .title-blue { border-left-color: #2980B9; }
+    .kpi-card:hover { transform: scale(1.02); }
+    
+    .card-blue { background: linear-gradient(135deg, #EBF5FB 0%, #D6EAF8 100%); }
+    .card-green { background: linear-gradient(135deg, #E9F7EF 0%, #D4EFDF 100%); }
+    .card-orange { background: linear-gradient(135deg, #FEF9E7 0%, #FDEBD0 100%); }
+    .card-purple { background: linear-gradient(135deg, #F5EEF8 0%, #EBDEF0 100%); }
+
+    .kpi-value { font-size: 28px; font-weight: 700; color: #2C3E50; margin: 0; }
+    .kpi-label { font-size: 12px; font-weight: 600; color: #5D6D7E; text-transform: uppercase; letter-spacing: 1px; }
+
+    /* --- TITRES --- */
+    .custom-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #34495E;
+        padding: 10px 15px;
+        background-color: #FFFFFF;
+        border-radius: 10px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+        border-left: 5px solid #ccc;
+    }
+    .title-blue { border-left-color: #3498DB; }
     .title-orange { border-left-color: #E67E22; }
     .title-green { border-left-color: #27AE60; }
     .title-purple { border-left-color: #8E44AD; }
@@ -102,14 +103,12 @@ st.markdown("""
     /* --- GRAPHIQUES --- */
     .stPlotlyChart {
         background-color: #FFFFFF;
-        border-radius: 20px;
-        padding: 15px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-        border: 1px solid #F0F0F0;
+        border-radius: 15px;
+        padding: 10px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
     }
     
     [data-testid="stSidebar"] { background-color: #FFFFFF; }
-    .streamlit-expanderHeader { background-color: #FFFFFF; border-radius: 10px; font-weight: 600; }
 
 </style>
 """, unsafe_allow_html=True)
@@ -173,7 +172,6 @@ df_filtered = df[mask]
 
 # --- 5. DASHBOARD PRINCIPAL ---
 
-# NOUVEAU HEADER AVEC IMAGE D'ARRIÈRE-PLAN
 st.markdown("""
 <div class="main-header-card">
     <h1 class="main-header-title">EXECUTIVE SALES HUB</h1>
@@ -185,7 +183,7 @@ if df_filtered.empty:
     st.error("No data available based on current filters.")
     st.stop()
 
-# --- ROW 1: KPIs COLORÉS ---
+# --- ROW 1: KPIs ---
 total_sales = df_filtered['Sales'].sum()
 total_profit = df_filtered['Profit'].sum()
 avg_ticket = df_filtered['Sales'].mean()
@@ -204,36 +202,45 @@ with c4:
 
 st.write("") 
 
-# --- ROW 2: CARTE & DONUT (CERCLE CORRIGÉ) ---
-col_L, col_R = st.columns([3, 2])
+# --- ROW 2: CARTE & DONUT (LARGEUR MAXIMISÉE) ---
+
+# CHANGEMENT CLÉ : 50% / 50% (Ratios égaux)
+# Cela force la carte à être plus large (donc plus zoomée)
+# ET cela donne au cercle tout l'espace nécessaire.
+col_L, col_R = st.columns([1, 1]) 
 
 with col_L:
     st.markdown('<div class="custom-title title-blue">🌍 Geographic Sales Distribution</div>', unsafe_allow_html=True)
     map_data = df_filtered.groupby('Region')['Sales'].sum().reset_index()
     fig_map = px.choropleth(map_data, locations="Region", locationmode="country names", color="Sales", color_continuous_scale="Blues", template="simple_white")
+    
+    # Réglage des marges à 0 pour utiliser tout l'espace de la colonne
     fig_map.update_geos(showframe=False, projection_type='natural earth', bgcolor='rgba(0,0,0,0)')
-    fig_map.update_layout(margin={"r":0,"t":0,"l":0,"b":0}, paper_bgcolor='rgba(0,0,0,0)', height=400)
+    fig_map.update_layout(margin={"r":0,"t":0,"l":0,"b":0}, paper_bgcolor='rgba(0,0,0,0)', height=450)
     st.plotly_chart(fig_map, use_container_width=True)
 
 with col_R:
     st.markdown('<div class="custom-title title-orange">📦 Sales by Category</div>', unsafe_allow_html=True)
     
-    # MODIFICATION ICI : hole=0.4 (au lieu de 0.6)
     fig_donut = px.pie(
         df_filtered, 
         values='Sales', 
         names='Category', 
-        hole=0.4, # Le trou est plus petit, donc l'anneau est plus épais
+        hole=0.4, 
         color_discrete_sequence=px.colors.qualitative.Bold, 
         template="simple_white"
     )
+    # inside = texte DANS le diagramme pour ne pas dépasser
     fig_donut.update_traces(textposition='inside', textinfo='percent+label')
     
+    # automargin=True est crucial : Plotly calcule l'espace pour ne pas couper
     fig_donut.update_layout(
         showlegend=False,
-        margin=dict(t=10, b=10, l=10, r=10),
+        margin=dict(t=20, b=20, l=20, r=20),
         paper_bgcolor='rgba(0,0,0,0)',
-        height=400
+        height=450,
+        uniformtext_minsize=12, 
+        uniformtext_mode='hide' # Cache le texte s'il est trop petit pour rentrer (évite le débordement moche)
     )
     st.plotly_chart(fig_donut, use_container_width=True)
 
@@ -255,7 +262,7 @@ with col3_2:
     fig_line.update_layout(yaxis_title="Revenue ($)", paper_bgcolor='rgba(0,0,0,0)', margin=dict(t=20, b=20, l=20, r=20))
     st.plotly_chart(fig_line, use_container_width=True)
 
-# --- FOOTER & RAW DATA ---
+# --- FOOTER ---
 st.write("")
 st.markdown("---")
 
