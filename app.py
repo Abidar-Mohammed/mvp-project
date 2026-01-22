@@ -10,7 +10,7 @@ from PIL import Image
 st.set_page_config(
     page_title="Executive Sales Hub",
     page_icon="💎",
-    layout="wide", # INDISPENSABLE POUR LE FULL SCREEN
+    layout="wide",
     initial_sidebar_state="expanded"
 )
 
@@ -25,7 +25,7 @@ st.markdown("""
         color: #333;
     }
 
-    /* PLEINE LARGEUR (FULL WIDTH) */
+    /* PLEINE LARGEUR */
     .block-container {
         padding-top: 1rem;
         padding-bottom: 1rem;
@@ -99,7 +99,7 @@ st.markdown("""
     .title-orange { border-left-color: #E67E22; }
     .title-green { border-left-color: #27AE60; }
     .title-purple { border-left-color: #8E44AD; }
-    .title-red { border-left-color: #E74C3C; } /* Nouveau pour la fin */
+    .title-red { border-left-color: #E74C3C; }
 
     /* GRAPHIQUES */
     .stPlotlyChart {
@@ -253,35 +253,35 @@ with col3_2:
     fig_line.update_layout(yaxis_title="Revenue ($)", paper_bgcolor='rgba(0,0,0,0)', margin=dict(t=20, b=20, l=20, r=20))
     st.plotly_chart(fig_line, use_container_width=True)
 
-# --- ROW 4: NOUVEAUX GRAPHIQUES (SCATTER & SUNBURST) ---
+# --- ROW 4: HEATMAP & SUNBURST ---
 st.write("")
 col4_1, col4_2 = st.columns(2)
 
 with col4_1:
-    st.markdown('<div class="custom-title title-red">🔍 Profitability Analysis (Scatter)</div>', unsafe_allow_html=True)
-    # Scatter Plot: Montre la relation entre Ventes et Profit par Type de Client
-    fig_scat = px.scatter(
+    # CHANGEMENT ICI : HEATMAP à la place du Scatter
+    st.markdown('<div class="custom-title title-red">🔥 Profit Heatmap (Region vs Category)</div>', unsafe_allow_html=True)
+    
+    fig_heat = px.density_heatmap(
         df_filtered,
-        x="Sales",
-        y="Profit",
-        color="Customer_Type",
-        size="Sales", # Taille de la bulle = montant
-        opacity=0.6,
-        template="simple_white",
-        color_discrete_sequence=px.colors.qualitative.Set1
+        x="Region",
+        y="Category",
+        z="Profit",
+        histfunc="sum",
+        color_continuous_scale="Reds", # Échelle Rouge pour montrer l'intensité (Chaleur)
+        template="simple_white"
     )
-    fig_scat.update_layout(
-        xaxis_title="Sales Amount ($)",
-        yaxis_title="Profit ($)",
+    
+    fig_heat.update_layout(
+        xaxis_title="Region",
+        yaxis_title="Category",
         paper_bgcolor='rgba(0,0,0,0)',
         height=400,
         margin=dict(t=20, b=20, l=20, r=20)
     )
-    st.plotly_chart(fig_scat, use_container_width=True)
+    st.plotly_chart(fig_heat, use_container_width=True)
 
 with col4_2:
     st.markdown('<div class="custom-title title-blue">🌞 Hierarchy View (Sunburst)</div>', unsafe_allow_html=True)
-    # Sunburst: Region -> Category -> Sales
     fig_sun = px.sunburst(
         df_filtered,
         path=['Region', 'Category'],
