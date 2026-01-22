@@ -5,71 +5,72 @@ import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
 
-# --- 1. CONFIGURATION DE LA PAGE ---
+# --- 1. PAGE CONFIGURATION ---
 st.set_page_config(
-    page_title="Board de Direction | Analytics",
+    page_title="Nexus Analytics | Executive Dashboard",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# --- 2. INJECTION CSS (DESIGN PREMIUM) ---
-# C'est ici qu'on change le style, la police et qu'on retire l'aspect "basic"
+# --- 2. ADVANCED CSS STYLING (The "Look & Feel") ---
 st.markdown("""
 <style>
-    /* Import de la police Google Fonts (Roboto) pour un look pro */
-    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
-
+    /* 1. Force Professional Fonts */
     html, body, [class*="css"]  {
-        font-family: 'Roboto', sans-serif;
+        font-family: 'Segoe UI', 'Helvetica Neue', 'Roboto', sans-serif;
         color: #333333;
     }
     
-    /* Couleur de fond générale */
-    .stApp {
-        background-color: #F5F7F9; /* Gris très pâle "Bureautique" */
-    }
-
-    /* Style du Sidebar */
+    /* 2. Sidebar Styling (Green Theme requested) */
     [data-testid="stSidebar"] {
-        background-color: #FFFFFF;
+        background-color: #F8F9FA; /* Light Grey Background */
         border-right: 1px solid #E0E0E0;
     }
-
-    /* Style des Titres */
-    h1, h2, h3 {
-        color: #0F2027; /* Bleu nuit très sombre */
+    
+    /* Sidebar Headers in Green */
+    [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3 {
+        color: #27AE60 !important; /* Emerald Green */
         font-weight: 700;
+        text-transform: uppercase;
+        font-size: 14px;
+        letter-spacing: 1px;
     }
 
-    /* Création de cartes pour les KPIs (Key Performance Indicators) */
+    /* 3. Main Title Styling */
+    h1 {
+        color: #2C3E50; /* Dark Blue-Grey */
+        font-weight: 800;
+    }
+    
+    h2, h3 {
+        color: #2C3E50;
+    }
+
+    /* 4. KPI Cards Styling */
     div[data-testid="metric-container"] {
         background-color: #FFFFFF;
-        border: 1px solid #E0E0E0;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.04); /* Ombre douce */
-        text-align: center;
+        border-left: 5px solid #27AE60; /* Green Accent Bar */
+        padding: 15px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        border-radius: 5px;
     }
 
-    /* Taille des chiffres */
     [data-testid="stMetricValue"] {
-        font-size: 28px;
-        color: #203A43; /* Bleu pétrole */
+        font-size: 26px;
+        color: #2C3E50;
+        font-weight: 700;
     }
-
-    /* Etiquettes des métriques */
+    
     [data-testid="stMetricLabel"] {
         font-size: 14px;
         color: #7f8c8d;
-        font-weight: 500;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# --- 3. GÉNÉRATION DE DONNÉES (SIMULATION) ---
+# --- 3. DATA GENERATION (ENGLISH & DETAILED) ---
 @st.cache_data
 def load_data():
-    # Simulation d'une base de données d'entreprise
     np.random.seed(42)
     end_date = datetime.today()
     start_date = end_date - timedelta(days=365)
@@ -78,14 +79,16 @@ def load_data():
     date_range = pd.date_range(start=start_date, end=end_date, freq="H")
     random_dates = np.random.choice(date_range, n_samples)
     
-    # Données réalistes
-    products = np.random.choice(['Solution SaaS Premium', 'Maintenance Annuelle', 'Audit & Conseil', 'Formation Équipe'], n_samples)
-    regions = np.random.choice(['France', 'Allemagne', 'Royaume-Uni', 'Espagne', 'Italie', 'Benelux'], n_samples)
-    status = np.random.choice(['Validé', 'En attente', 'Annulé'], n_samples, p=[0.85, 0.1, 0.05])
-    segments = np.random.choice(['Grand Compte', 'PME', 'Start-up'], n_samples)
+    # English Data
+    products = np.random.choice(['Enterprise Suite X1', 'Cloud Storage Pro', 'CyberSecurity Plus', 'AI Consultant Hour'], n_samples)
+    regions = np.random.choice(['North America', 'EMEA (Europe)', 'APAC (Asia)', 'LATAM (South Am.)'], n_samples)
+    status = np.random.choice(['Confirmed', 'Pending', 'Cancelled'], n_samples, p=[0.85, 0.1, 0.05])
+    segments = np.random.choice(['Fortune 500', 'SMB', 'Government'], n_samples)
     
-    revenue = np.random.randint(2000, 25000, n_samples)
-    cost = revenue * np.random.uniform(0.4, 0.7, n_samples) # Marge variable
+    revenue = np.random.randint(1500, 20000, n_samples)
+    # Cost logic to create variable margins
+    cost_factor = np.random.uniform(0.3, 0.7, n_samples)
+    cost = revenue * cost_factor
     
     df = pd.DataFrame({
         'Date': random_dates,
@@ -97,185 +100,222 @@ def load_data():
         'Cost': cost
     })
     
-    # Calculs additionnels
     df['Profit'] = df['Revenue'] - df['Cost']
-    df['Marge_Pct'] = (df['Profit'] / df['Revenue']) * 100
+    df['Margin (%)'] = (df['Profit'] / df['Revenue']) * 100
     df['Date'] = pd.to_datetime(df['Date'])
     
     return df.sort_values('Date')
 
 df = load_data()
 
-# --- 4. BARRE LATÉRALE (Filtres & Logo) ---
+# --- 4. SIDEBAR CONFIGURATION (GREEN THEME) ---
 
-# Logo (Placeholder - Remplace l'URL par ton logo plus tard)
-st.sidebar.image("https://placehold.co/200x80/203A43/FFF?text=CORP+DATA", use_container_width=True)
-st.sidebar.markdown("---")
+# Dynamic Logo (Blue & Green)
+st.sidebar.image("https://placehold.co/250x80/27AE60/FFFFFF?text=NEXUS+ANALYTICS", use_container_width=True)
 
-st.sidebar.subheader("Paramètres de Filtrage")
+st.sidebar.title("Filter Parameters")
 
-# Filtres
-region_filter = st.sidebar.multiselect("Zone Géographique", df['Region'].unique(), default=df['Region'].unique())
-segment_filter = st.sidebar.multiselect("Segment Client", df['Segment'].unique(), default=df['Segment'].unique())
-
-# Filtre Date
+# Date Filter
 min_date = df['Date'].min().date()
 max_date = df['Date'].max().date()
-date_range = st.sidebar.date_input("Période d'Analyse", value=(min_date, max_date), min_value=min_date, max_value=max_date)
+date_range = st.sidebar.date_input("Analysis Period", value=(min_date, max_date), min_value=min_date, max_value=max_date)
 
-# Application des filtres
+# Category Filters
+region_filter = st.sidebar.multiselect("Geographic Region", df['Region'].unique(), default=df['Region'].unique())
+segment_filter = st.sidebar.multiselect("Client Segment", df['Segment'].unique(), default=df['Segment'].unique())
+
+# Advanced Filter (New)
+st.sidebar.markdown("---")
+st.sidebar.title("Threshold Settings")
+min_rev = st.sidebar.slider("Min. Transaction Value ($)", 0, 5000, 0)
+
+# Apply Filters
 mask = (
     (df['Date'].dt.date >= date_range[0]) &
     (df['Date'].dt.date <= date_range[1]) &
     (df['Region'].isin(region_filter)) &
     (df['Segment'].isin(segment_filter)) &
-    (df['Status'] == 'Validé') # On ne regarde que les ventes validées par défaut
+    (df['Revenue'] >= min_rev) &
+    (df['Status'] == 'Confirmed')
 )
 df_filtered = df[mask]
 
-# --- 5. CORPS PRINCIPAL DU DASHBOARD ---
+# --- 5. MAIN DASHBOARD ---
 
-# En-tête Contextuelle
-st.title("Rapport de Performance Commerciale")
+st.title("Executive Sales Overview")
 st.markdown("""
-**Contexte & Objectifs :** Ce tableau de bord permet au comité de direction de piloter la rentabilité par zone géographique et par ligne de produit.  
-L'objectif est d'identifier les leviers de croissance pour le prochain trimestre et de surveiller l'évolution des marges opérationnelles.
+**Dashboard Objective:** Monitor Year-to-Date sales performance across global territories. 
+Use the sidebar (Green controls) to filter by segment and identify high-value opportunities.
 """)
 st.markdown("---")
 
 if df_filtered.empty:
-    st.error("Aucune donnée disponible pour les filtres sélectionnés.")
+    st.error("No data available based on current filters. Please adjust settings.")
     st.stop()
 
-# SECTION KPIs (CHIFFRES CLÉS)
-total_ca = df_filtered['Revenue'].sum()
-total_marge = df_filtered['Profit'].sum()
-marge_moyenne = df_filtered['Marge_Pct'].mean()
-panier_moyen = df_filtered['Revenue'].mean()
+# --- KPI SECTION ---
+total_rev = df_filtered['Revenue'].sum()
+total_profit = df_filtered['Profit'].sum()
+avg_margin = df_filtered['Margin (%)'].mean()
+count_trans = len(df_filtered)
 
-col1, col2, col3, col4 = st.columns(4)
+c1, c2, c3, c4 = st.columns(4)
 
-with col1:
-    st.metric(label="Chiffre d'Affaires Total", value=f"{total_ca:,.0f} €")
-with col2:
-    st.metric(label="Marge Nette", value=f"{total_marge:,.0f} €")
-with col3:
-    st.metric(label="Taux de Marge Moyen", value=f"{marge_moyenne:.1f} %")
-with col4:
-    st.metric(label="Panier Moyen", value=f"{panier_moyen:,.0f} €")
+with c1:
+    st.metric("Total Revenue", f"${total_rev:,.0f}")
+with c2:
+    st.metric("Net Profit", f"${total_profit:,.0f}")
+with c3:
+    st.metric("Avg Margin", f"{avg_margin:.1f}%")
+with c4:
+    st.metric("Transactions", f"{count_trans:,}")
 
-st.markdown("### Analyse Détaillée")
+st.markdown("### Detailed Analysis Modules")
 
-# ONGLETS D'ANALYSE
-tab1, tab2, tab3 = st.tabs(["📈 Tendance & Prévision", "🌍 Répartition Géographique", "📦 Performance Produits"])
+# --- TABS ---
+tab1, tab2, tab3 = st.tabs(["📊 Financial Trends", "🌍 Regional Heatmap", "📦 Product Deep Dive"])
 
-# ONGLET 1 : TENDANCES
+# TAB 1: FINANCIAL TRENDS (Clean & Pro)
 with tab1:
-    st.subheader("Évolution Temporelle du CA vs Marge")
+    st.subheader("Revenue vs. Profitability Timeline")
     
-    # Agrégation par mois
-    df_filtered['Mois'] = df_filtered['Date'].dt.to_period('M').dt.start_time
-    monthly_data = df_filtered.groupby('Mois')[['Revenue', 'Profit']].sum().reset_index()
+    # Group by Month
+    df_filtered['Month'] = df_filtered['Date'].dt.to_period('M').dt.start_time
+    monthly = df_filtered.groupby('Month')[['Revenue', 'Profit']].sum().reset_index()
     
-    # Graphique Double Axe (Propre et Corporate)
-    fig_trend = go.Figure()
+    fig_dual = go.Figure()
     
-    # Barres pour le CA
-    fig_trend.add_trace(go.Bar(
-        x=monthly_data['Mois'], y=monthly_data['Revenue'],
-        name="Chiffre d'Affaires",
-        marker_color='#203A43' # Bleu sombre
+    # Bar Chart (Revenue)
+    fig_dual.add_trace(go.Bar(
+        x=monthly['Month'], y=monthly['Revenue'],
+        name="Revenue ($)",
+        marker_color='#2C3E50' # Dark Blue
     ))
     
-    # Ligne pour la Marge
-    fig_trend.add_trace(go.Scatter(
-        x=monthly_data['Mois'], y=monthly_data['Profit'],
-        name="Marge Nette",
+    # Line Chart (Profit)
+    fig_dual.add_trace(go.Scatter(
+        x=monthly['Month'], y=monthly['Profit'],
+        name="Net Profit ($)",
         yaxis='y2',
         mode='lines+markers',
-        line=dict(color='#2C5364', width=3) # Bleu pétrole plus clair
+        line=dict(color='#27AE60', width=3) # Green line
     ))
     
-    fig_trend.update_layout(
+    fig_dual.update_layout(
         template="simple_white",
-        yaxis=dict(title="CA (€)", showgrid=True, gridcolor='#F0F0F0'),
-        yaxis2=dict(title="Marge (€)", overlaying='y', side='right', showgrid=False),
+        yaxis=dict(title="Revenue", showgrid=True, gridcolor='#F1F1F1'),
+        yaxis2=dict(title="Profit", overlaying='y', side='right', showgrid=False),
         legend=dict(orientation="h", y=1.1),
-        margin=dict(l=0, r=0, t=0, b=0),
-        height=400
+        height=450
     )
-    st.plotly_chart(fig_trend, use_container_width=True)
+    st.plotly_chart(fig_dual, use_container_width=True)
 
-# ONGLET 2 : CARTE
+# TAB 2: MAP
 with tab2:
-    col_map1, col_map2 = st.columns([2, 1])
+    st.subheader("Sales Intensity by Region")
     
-    # Agrégation par pays
-    country_data = df_filtered.groupby('Region')[['Revenue']].sum().reset_index()
+    # Aggregate
+    region_data = df_filtered.groupby('Region')[['Revenue']].sum().reset_index()
     
-    with col_map1:
-        st.markdown("**Cartographie des Ventes (Europe)**")
-        fig_map = px.choropleth(
-            country_data,
-            locations='Region',
-            locationmode='country names', # Fonctionne mieux avec les noms anglais standard, ici on simule
+    # NOTE: Since we are using fake regions like "North America", we map them to ISO codes for the chart
+    # In a real app, you would use country names.
+    
+    c_map, c_table = st.columns([2, 1])
+    
+    with c_map:
+        # Simple Bar for regions (More accurate than map for broad regions)
+        fig_bar = px.bar(
+            region_data, x='Region', y='Revenue',
             color='Revenue',
-            scope='europe',
-            color_continuous_scale='Blues',
-            template='simple_white'
+            color_continuous_scale=['#D5F5E3', '#27AE60', '#145A32'], # Light Green to Dark Green
+            template="simple_white",
+            text_auto='.2s'
         )
-        fig_map.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
-        st.plotly_chart(fig_map, use_container_width=True)
-    
-    with col_map2:
-        st.markdown("**Top Régions**")
+        st.plotly_chart(fig_bar, use_container_width=True)
+        
+    with c_table:
+        st.markdown("**Regional Breakdown**")
         st.dataframe(
-            country_data.sort_values('Revenue', ascending=False).style.format({"Revenue": "{:,.0f} €"}),
+            region_data.sort_values('Revenue', ascending=False).style.format({"Revenue": "${:,.0f}"}),
             use_container_width=True,
             hide_index=True
         )
 
-# ONGLET 3 : PRODUITS (MATRICE)
+# TAB 3: PRODUCT DEEP DIVE (Detailed as requested)
 with tab3:
-    st.subheader("Matrice Rentabilité par Produit")
-    st.markdown("Ce graphique permet de distinguer les produits 'Vaches à lait' (Gros volumes, forte marge) des produits à risque.")
+    st.subheader("Product Portfolio Performance")
     
-    prod_data = df_filtered.groupby('Product').agg({
-        'Revenue': 'sum',
-        'Marge_Pct': 'mean',
-        'Date': 'count' # Nombre de transactions
-    }).reset_index()
+    # 1. Pareto Analysis (80/20 Rule)
+    st.markdown("##### Pareto Analysis (Cumulative Revenue)")
+    prod_pareto = df_filtered.groupby('Product')['Revenue'].sum().sort_values(ascending=False).reset_index()
+    prod_pareto['Cumulative %'] = 100 * (prod_pareto['Revenue'].cumsum() / prod_pareto['Revenue'].sum())
     
-    fig_bubble = px.scatter(
-        prod_data,
-        x="Revenue",
-        y="Marge_Pct",
-        size="Date", # Taille de la bulle = Volume de ventes
-        color="Product",
-        hover_name="Product",
-        text="Product",
+    fig_pareto = go.Figure()
+    fig_pareto.add_trace(go.Bar(
+        x=prod_pareto['Product'], y=prod_pareto['Revenue'], name='Revenue',
+        marker_color='#2C3E50'
+    ))
+    fig_pareto.add_trace(go.Scatter(
+        x=prod_pareto['Product'], y=prod_pareto['Cumulative %'], name='Cumulative %',
+        yaxis='y2', mode='lines+markers', line=dict(color='#E74C3C', width=2)
+    ))
+    fig_pareto.update_layout(
         template="simple_white",
-        color_discrete_sequence=px.colors.qualitative.G10
+        yaxis2=dict(overlaying='y', side='right', range=[0, 110]),
+        legend=dict(orientation="h", y=1.1),
+        height=400
     )
-    fig_bubble.update_traces(textposition='top center')
-    fig_bubble.update_layout(
-        xaxis_title="Chiffre d'Affaires Total (€)",
-        yaxis_title="Marge Moyenne (%)",
-        showlegend=False,
-        height=450
+    st.plotly_chart(fig_pareto, use_container_width=True)
+    
+    st.markdown("---")
+    
+    # 2. Detailed Scorecard Table
+    st.markdown("##### Product Scorecard")
+    
+    # Complex aggregation
+    scorecard = df_filtered.groupby('Product').agg(
+        Total_Revenue=('Revenue', 'sum'),
+        Avg_Margin=('Margin (%)', 'mean'),
+        Transaction_Count=('Date', 'count'),
+        Avg_Deal_Size=('Revenue', 'mean')
+    ).reset_index()
+    
+    # Using Streamlit Column Config for visual bars in table
+    st.dataframe(
+        scorecard.sort_values('Total_Revenue', ascending=False),
+        column_config={
+            "Total_Revenue": st.column_config.ProgressColumn(
+                "Total Revenue",
+                help="Total contribution to Top Line",
+                format="$%f",
+                min_value=0,
+                max_value=scorecard['Total_Revenue'].max(),
+            ),
+            "Avg_Margin": st.column_config.NumberColumn(
+                "Avg Margin",
+                format="%.1f%%"
+            ),
+            "Avg_Deal_Size": st.column_config.NumberColumn(
+                "Avg Deal Value",
+                format="$%.0f"
+            )
+        },
+        use_container_width=True,
+        hide_index=True
     )
-    st.plotly_chart(fig_bubble, use_container_width=True)
 
-# --- 6. EXPORT DES DONNÉES ---
+# --- 6. EXPORT ---
 st.markdown("---")
-col_d1, col_d2 = st.columns([3, 1])
-with col_d1:
-    st.caption("Document généré automatiquement par le système central. Données confidentielles.")
-with col_d2:
+col_bottom_1, col_bottom_2 = st.columns([4, 1])
+
+with col_bottom_1:
+    st.caption("Confidential: For Internal Use Only. Nexus Analytics System v2.1")
+
+with col_bottom_2:
     csv = df_filtered.to_csv(index=False).encode('utf-8')
     st.download_button(
-        label="📥 Exporter le Rapport (CSV)",
+        label="📥 Download CSV",
         data=csv,
-        file_name='rapport_direction_Q1.csv',
+        file_name='nexus_sales_report.csv',
         mime='text/csv'
     )
