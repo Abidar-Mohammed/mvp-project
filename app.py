@@ -9,7 +9,7 @@ from PIL import Image
 # --- 1. CONFIGURATION DE LA PAGE ---
 st.set_page_config(
     page_title="Executive Sales Hub",
-    page_icon="❖", # Icône sobre
+    page_icon="❖",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -95,7 +95,6 @@ st.markdown("""
         box-shadow: 0 2px 5px rgba(0,0,0,0.03);
         border-left: 5px solid #ccc;
     }
-    /* Couleurs des barres latérales (On garde la couleur, mais l'icone sera noire) */
     .title-blue { border-left-color: #3498DB; }
     .title-orange { border-left-color: #E67E22; }
     .title-green { border-left-color: #27AE60; }
@@ -142,6 +141,18 @@ def load_data():
     df['Profit'] = df['Sales'] * np.random.uniform(0.1, 0.45, n_samples)
     df['Date'] = pd.to_datetime(df['Date'])
     
+    # --- AJOUT : MAPPING CONTINENT ---
+    continent_map = {
+        'USA': 'North America',
+        'Canada': 'North America',
+        'France': 'Europe',
+        'Germany': 'Europe',
+        'United Kingdom': 'Europe',
+        'Spain': 'Europe',
+        'Italy': 'Europe'
+    }
+    df['Continent'] = df['Region'].map(continent_map)
+    
     return df.sort_values('Date')
 
 df = load_data()
@@ -155,7 +166,6 @@ with st.sidebar:
         st.warning("⚠️ LOGO.jpeg missing.")
     
     st.markdown("---")
-    # Utilisation d'un symbole unicode noir (⚙)
     st.write("### ⚙ CONTROLS")
     
     min_date = df['Date'].min()
@@ -209,7 +219,6 @@ st.write("")
 col_L, col_R = st.columns([3, 1]) 
 
 with col_L:
-    # Symbole Globe Noir (🌐) ou Carte (🗺)
     st.markdown('<div class="custom-title title-blue">🌐 Geographic Sales Distribution</div>', unsafe_allow_html=True)
     map_data = df_filtered.groupby('Region')['Sales'].sum().reset_index()
     fig_map = px.choropleth(map_data, locations="Region", locationmode="country names", color="Sales", color_continuous_scale="Blues", template="simple_white")
@@ -218,7 +227,6 @@ with col_L:
     st.plotly_chart(fig_map, use_container_width=True)
 
 with col_R:
-    # Symbole Diamant Noir/Carré (◈)
     st.markdown('<div class="custom-title title-orange">◈ Sales by Category</div>', unsafe_allow_html=True)
     fig_donut = px.pie(
         df_filtered, 
@@ -243,7 +251,6 @@ with col_R:
 col3_1, col3_2 = st.columns(2)
 
 with col3_1:
-    # Symbole Étoile Noire (★)
     st.markdown('<div class="custom-title title-green">★ Top 10 Profitable Products</div>', unsafe_allow_html=True)
     top_products = df_filtered.groupby('Product')['Profit'].sum().sort_values(ascending=True).tail(10)
     fig_bar = px.bar(top_products, x=top_products.values, y=top_products.index, orientation='h', text_auto='.2s', color=top_products.values, color_continuous_scale='Greens', template="simple_white")
@@ -251,7 +258,6 @@ with col3_1:
     st.plotly_chart(fig_bar, use_container_width=True)
 
 with col3_2:
-    # Symbole Courbe (∿) ou Graphique (📉)
     st.markdown('<div class="custom-title title-purple">∿ Monthly Revenue Trend</div>', unsafe_allow_html=True)
     df_filtered['Month'] = df_filtered['Date'].dt.to_period('M').dt.start_time
     trend_data = df_filtered.groupby('Month')['Sales'].sum().reset_index()
@@ -259,17 +265,17 @@ with col3_2:
     fig_line.update_layout(yaxis_title="Revenue ($)", paper_bgcolor='rgba(0,0,0,0)', margin=dict(t=20, b=20, l=20, r=20))
     st.plotly_chart(fig_line, use_container_width=True)
 
-# --- ROW 4: HEATMAP & SUNBURST (ICONES NOIRES & NOUVEAUX TITRES) ---
+# --- ROW 4: HEATMAP (CONTINENT) & SUNBURST ---
 st.write("")
 col4_1, col4_2 = st.columns(2)
 
 with col4_1:
-    # Symbole Fenêtre/Matrice (⊞)
-    st.markdown('<div class="custom-title title-red">⊞ Regional Profit Matrix</div>', unsafe_allow_html=True)
+    # CHANGEMENT ICI : Titre et Axe X (Continent)
+    st.markdown('<div class="custom-title title-red">⊞ Continent Profit Matrix</div>', unsafe_allow_html=True)
     
     fig_heat = px.density_heatmap(
         df_filtered,
-        x="Region",
+        x="Continent", # On utilise la nouvelle colonne Continent
         y="Category",
         z="Profit",
         histfunc="sum",
@@ -278,7 +284,7 @@ with col4_1:
     )
     
     fig_heat.update_layout(
-        xaxis_title="Region",
+        xaxis_title="Continent",
         yaxis_title="Category",
         paper_bgcolor='rgba(0,0,0,0)',
         height=400,
@@ -287,7 +293,6 @@ with col4_1:
     st.plotly_chart(fig_heat, use_container_width=True)
 
 with col4_2:
-    # Symbole Cible/Hierarchie (◎)
     st.markdown('<div class="custom-title title-blue">◎ Market Segmentation Hierarchy</div>', unsafe_allow_html=True)
     fig_sun = px.sunburst(
         df_filtered,
