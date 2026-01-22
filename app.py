@@ -10,7 +10,7 @@ from PIL import Image
 st.set_page_config(
     page_title="Executive Sales Hub",
     page_icon="💎",
-    layout="wide", # INDISPENSABLE
+    layout="wide", # INDISPENSABLE POUR LE FULL SCREEN
     initial_sidebar_state="expanded"
 )
 
@@ -99,6 +99,7 @@ st.markdown("""
     .title-orange { border-left-color: #E67E22; }
     .title-green { border-left-color: #27AE60; }
     .title-purple { border-left-color: #8E44AD; }
+    .title-red { border-left-color: #E74C3C; } /* Nouveau pour la fin */
 
     /* GRAPHIQUES */
     .stPlotlyChart {
@@ -203,23 +204,18 @@ with c4:
 st.write("") 
 
 # --- ROW 2: CARTE (GRANDE) & DONUT (PETIT) ---
-
-# CHANGEMENT ICI : Ratio [3, 1] (75% pour la carte / 25% pour le cercle)
 col_L, col_R = st.columns([3, 1]) 
 
 with col_L:
     st.markdown('<div class="custom-title title-blue">🌍 Geographic Sales Distribution</div>', unsafe_allow_html=True)
     map_data = df_filtered.groupby('Region')['Sales'].sum().reset_index()
     fig_map = px.choropleth(map_data, locations="Region", locationmode="country names", color="Sales", color_continuous_scale="Blues", template="simple_white")
-    
-    # HAUTEUR AUGMENTÉE A 500px pour profiter de la largeur
     fig_map.update_geos(showframe=False, projection_type='natural earth', bgcolor='rgba(0,0,0,0)')
     fig_map.update_layout(margin={"r":0,"t":0,"l":0,"b":0}, paper_bgcolor='rgba(0,0,0,0)', height=500)
     st.plotly_chart(fig_map, use_container_width=True)
 
 with col_R:
     st.markdown('<div class="custom-title title-orange">📦 Categories</div>', unsafe_allow_html=True)
-    
     fig_donut = px.pie(
         df_filtered, 
         values='Sales', 
@@ -228,14 +224,12 @@ with col_R:
         color_discrete_sequence=px.colors.qualitative.Bold, 
         template="simple_white"
     )
-    # Affichage compact pour petit espace
     fig_donut.update_traces(textposition='inside', textinfo='percent+label')
-    
     fig_donut.update_layout(
         showlegend=False,
         margin=dict(t=10, b=10, l=10, r=10),
         paper_bgcolor='rgba(0,0,0,0)',
-        height=500, # Hauteur alignée avec la carte
+        height=500, 
         uniformtext_minsize=10, 
         uniformtext_mode='hide'
     )
@@ -258,6 +252,51 @@ with col3_2:
     fig_line = px.area(trend_data, x='Month', y='Sales', line_shape='spline', color_discrete_sequence=['#8E44AD'], template="simple_white")
     fig_line.update_layout(yaxis_title="Revenue ($)", paper_bgcolor='rgba(0,0,0,0)', margin=dict(t=20, b=20, l=20, r=20))
     st.plotly_chart(fig_line, use_container_width=True)
+
+# --- ROW 4: NOUVEAUX GRAPHIQUES (SCATTER & SUNBURST) ---
+st.write("")
+col4_1, col4_2 = st.columns(2)
+
+with col4_1:
+    st.markdown('<div class="custom-title title-red">🔍 Profitability Analysis (Scatter)</div>', unsafe_allow_html=True)
+    # Scatter Plot: Montre la relation entre Ventes et Profit par Type de Client
+    fig_scat = px.scatter(
+        df_filtered,
+        x="Sales",
+        y="Profit",
+        color="Customer_Type",
+        size="Sales", # Taille de la bulle = montant
+        opacity=0.6,
+        template="simple_white",
+        color_discrete_sequence=px.colors.qualitative.Set1
+    )
+    fig_scat.update_layout(
+        xaxis_title="Sales Amount ($)",
+        yaxis_title="Profit ($)",
+        paper_bgcolor='rgba(0,0,0,0)',
+        height=400,
+        margin=dict(t=20, b=20, l=20, r=20)
+    )
+    st.plotly_chart(fig_scat, use_container_width=True)
+
+with col4_2:
+    st.markdown('<div class="custom-title title-blue">🌞 Hierarchy View (Sunburst)</div>', unsafe_allow_html=True)
+    # Sunburst: Region -> Category -> Sales
+    fig_sun = px.sunburst(
+        df_filtered,
+        path=['Region', 'Category'],
+        values='Sales',
+        color='Sales',
+        color_continuous_scale='Blues',
+        template="simple_white"
+    )
+    fig_sun.update_layout(
+        paper_bgcolor='rgba(0,0,0,0)',
+        height=400,
+        margin=dict(t=20, b=20, l=20, r=20)
+    )
+    st.plotly_chart(fig_sun, use_container_width=True)
+
 
 # --- FOOTER ---
 st.write("")
