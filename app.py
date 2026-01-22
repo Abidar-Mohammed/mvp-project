@@ -10,108 +10,91 @@ from PIL import Image
 st.set_page_config(
     page_title="Executive Sales Hub",
     page_icon="💎",
-    layout="wide", # Utilise toute la largeur de l'écran
+    layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# --- 2. CSS ESTHÉTIQUE (COLORÉ & AJUSTÉ) ---
+# --- 2. CSS ESTHÉTIQUE ---
 st.markdown("""
 <style>
-    /* Police moderne */
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
 
     html, body, [class*="css"]  {
         font-family: 'Poppins', sans-serif;
-        background-color: #F4F7F6;
+        background-color: #F0F2F5; /* Gris très léger pour le fond global */
         color: #333;
     }
 
-    /* --- EN-TÊTE PRINCIPAL (HEADER) --- */
+    /* --- NOUVEAU HEADER (Dark Premium Theme) --- */
     .main-header-card {
-        /* Dégradé subtil Gris-Bleuté pour l'esthétique */
-        background: linear-gradient(135deg, #FFFFFF 0%, #F0F4F8 100%);
+        background: linear-gradient(90deg, #141E30 0%, #243B55 100%); /* Dégradé Sombre */
         border-radius: 20px;
-        padding: 40px 20px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-        border: 1px solid #E1E8ED;
+        padding: 30px 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         text-align: center;
-        margin-bottom: 30px;
+        margin-bottom: 25px;
+        color: white; /* Texte blanc */
     }
     .main-header-title {
-        font-size: 42px;
-        font-weight: 800;
-        /* Texte en dégradé foncé */
-        background: -webkit-linear-gradient(#1A2980, #26D0CE);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+        font-size: 40px;
+        font-weight: 700;
+        color: #FFFFFF;
         margin: 0;
+        text-transform: uppercase;
+        letter-spacing: 2px;
     }
     .main-header-subtitle {
-        font-size: 18px;
-        color: #6C7A89;
-        margin-top: 10px;
-        font-weight: 400;
+        font-size: 16px;
+        color: #AAB7B8; /* Gris clair pour le sous-titre */
+        margin-top: 8px;
+        font-weight: 300;
     }
 
-    /* --- NOUVEAU STYLE DES KPIs (PLEINE COULEUR) --- */
+    /* --- KPIs (Bulles Colorées) --- */
     .kpi-card {
-        padding: 25px 15px;
-        border-radius: 20px;
+        padding: 20px 10px;
+        border-radius: 18px;
         text-align: center;
-        box-shadow: 0 8px 15px rgba(0,0,0,0.05);
-        margin-bottom: 20px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        margin-bottom: 15px;
         border: none;
-        transition: transform 0.3s ease;
-        color: #2C3E50; /* Couleur du texte */
+        transition: transform 0.2s ease;
     }
-    .kpi-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
+    .kpi-card:hover { transform: scale(1.02); }
     
-    /* Arrière-plans Pastels Dégradés */
-    .card-blue { background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%); }
-    .card-green { background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%); }
-    .card-orange { background: linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%); }
-    .card-purple { background: linear-gradient(135deg, #F3E5F5 0%, #E1BEE7 100%); }
+    .card-blue { background: linear-gradient(135deg, #EBF5FB 0%, #D6EAF8 100%); }
+    .card-green { background: linear-gradient(135deg, #E9F7EF 0%, #D4EFDF 100%); }
+    .card-orange { background: linear-gradient(135deg, #FEF9E7 0%, #FDEBD0 100%); }
+    .card-purple { background: linear-gradient(135deg, #F5EEF8 0%, #EBDEF0 100%); }
 
-    .kpi-value { font-size: 36px; font-weight: 700; color: #2C3E50; margin: 5px 0; }
-    .kpi-label { font-size: 13px; font-weight: 600; color: #546E7A; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8; }
+    .kpi-value { font-size: 32px; font-weight: 700; color: #2C3E50; margin: 0; }
+    .kpi-label { font-size: 13px; font-weight: 600; color: #5D6D7E; text-transform: uppercase; letter-spacing: 1px; }
 
     /* --- TITRES DE SECTION --- */
     .custom-title {
-        font-size: 20px;
+        font-size: 18px;
         font-weight: 600;
-        color: #2C3E50;
-        padding: 12px 20px;
+        color: #34495E;
+        padding: 10px 20px;
         background-color: #FFFFFF;
         border-radius: 12px;
         margin-bottom: 15px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        border-left: 6px solid #ccc; /* Couleur par défaut */
+        box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+        border-left: 5px solid #ccc;
     }
-    .title-blue { border-left-color: #2980B9; }
+    .title-blue { border-left-color: #3498DB; }
     .title-orange { border-left-color: #E67E22; }
     .title-green { border-left-color: #27AE60; }
     .title-purple { border-left-color: #8E44AD; }
 
-    /* --- GRAPHIQUES (BULLES) --- */
+    /* --- GRAPHIQUES --- */
     .stPlotlyChart {
         background-color: #FFFFFF;
         border-radius: 20px;
-        padding: 15px;
+        padding: 10px; /* Padding réduit pour laisser place au graphique */
         box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-        border: 1px solid #F0F0F0;
     }
     
-    /* --- EXPANDER (Raw Data) --- */
-    .streamlit-expanderHeader {
-        background-color: #FFFFFF;
-        border-radius: 10px;
-        font-weight: 600;
-    }
-
-    /* --- SIDEBAR --- */
     [data-testid="stSidebar"] { background-color: #FFFFFF; }
 
 </style>
@@ -176,7 +159,7 @@ df_filtered = df[mask]
 
 # --- 5. DASHBOARD PRINCIPAL ---
 
-# HEADER AVEC FOND ESTHÉTIQUE
+# NOUVEAU HEADER PREMIUM (FOND SOMBRE)
 st.markdown("""
 <div class="main-header-card">
     <h1 class="main-header-title">EXECUTIVE SALES HUB</h1>
@@ -188,7 +171,7 @@ if df_filtered.empty:
     st.error("No data available based on current filters.")
     st.stop()
 
-# --- ROW 1: KPIs AVEC ARRIÈRE-PLAN COLORÉ ---
+# --- ROW 1: KPIs COLORÉS ---
 total_sales = df_filtered['Sales'].sum()
 total_profit = df_filtered['Profit'].sum()
 avg_ticket = df_filtered['Sales'].mean()
@@ -207,8 +190,11 @@ with c4:
 
 st.write("") 
 
-# --- ROW 2: CARTE & DONUT (CORRIGÉ) ---
-col_L, col_R = st.columns([2, 1]) # La colonne de droite est plus étroite
+# --- ROW 2: CARTE & DONUT (ESPACE ÉLARGI POUR LE CERCLE) ---
+
+# CHANGEMENT ICI : J'ai mis [3, 2] au lieu de [2, 1]. 
+# Cela donne beaucoup plus de largeur (40%) à la colonne de droite (Donut).
+col_L, col_R = st.columns([3, 2]) 
 
 with col_L:
     st.markdown('<div class="custom-title title-blue">🌍 Geographic Sales Distribution</div>', unsafe_allow_html=True)
@@ -220,22 +206,22 @@ with col_L:
 
 with col_R:
     st.markdown('<div class="custom-title title-orange">📦 Sales by Category</div>', unsafe_allow_html=True)
-    # CORRECTION ICI : Ajustement des marges et de la légende pour tout voir
+    
     fig_donut = px.pie(
         df_filtered, 
         values='Sales', 
         names='Category', 
-        hole=0.65, 
+        hole=0.6, 
         color_discrete_sequence=px.colors.qualitative.Bold, 
         template="simple_white"
     )
-    fig_donut.update_traces(textposition='inside', textinfo='percent')
+    fig_donut.update_traces(textposition='inside', textinfo='percent+label')
     
-    # Légende en bas (horizontal) pour gagner de la place sur les côtés
+    # CORRECTION DES MARGES : Marges mises à 0 pour utiliser tout l'espace
+    # La légende est positionnée pour ne pas écraser le graphique
     fig_donut.update_layout(
-        showlegend=True, 
-        legend=dict(orientation="h", y=-0.1, x=0.5, xanchor="center"),
-        margin=dict(t=20, b=50, l=10, r=10), # Marges réduites
+        showlegend=False, # J'ai masqué la légende externe car les labels sont DANS le cercle (plus propre)
+        margin=dict(t=10, b=10, l=10, r=10),
         paper_bgcolor='rgba(0,0,0,0)',
         height=400
     )
@@ -259,17 +245,11 @@ with col3_2:
     fig_line.update_layout(yaxis_title="Revenue ($)", paper_bgcolor='rgba(0,0,0,0)', margin=dict(t=20, b=20, l=20, r=20))
     st.plotly_chart(fig_line, use_container_width=True)
 
-# --- FOOTER & RAW DATA (Section Ajoutée) ---
+# --- FOOTER & RAW DATA ---
 st.write("")
 st.markdown("---")
 
-# Section déroulante pour la base de données
 with st.expander("📂 View Raw Source Data (Click to expand)", expanded=False):
-    st.markdown("Below is the filtered dataset used for the analysis above.")
-    st.dataframe(
-        df_filtered.sort_values('Date', ascending=False),
-        use_container_width=True,
-        hide_index=True
-    )
+    st.dataframe(df_filtered.sort_values('Date', ascending=False), use_container_width=True, hide_index=True)
 
 st.markdown("<center style='color:#AAA; font-size:12px; margin-top:20px;'>Executive Analytics System | 2024 Internal Data</center>", unsafe_allow_html=True)
