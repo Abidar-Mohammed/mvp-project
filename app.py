@@ -3,318 +3,184 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
-from datetime import datetime, timedelta
-from PIL import Image
+from datetime import datetime
 
-# --- 1. CONFIGURATION DE LA PAGE ---
+# --- 1. CONFIGURATION ---
 st.set_page_config(
-    page_title="Executive Sales Hub",
-    page_icon="❖",
+    page_title="My Personal Coffee Tracker",
+    page_icon="☕",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# --- 2. CSS "ULTRA WIDE" & DESIGN ---
+# --- 2. PERSONAL DESIGN (Brown/Warm Theme) ---
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
-
-    html, body, [class*="css"]  {
-        font-family: 'Poppins', sans-serif;
-        background-color: #F4F7F6;
-        color: #333;
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap');
+    html, body, [class*="css"]  { font-family: 'Lato', sans-serif; background-color: #FDFBF7; color: #4E342E; }
+    
+    .header-box {
+        background: linear-gradient(135deg, #4E342E 0%, #8D6E63 100%);
+        padding: 40px; border-radius: 20px; text-align: center; color: white;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 30px;
     }
-
-    /* PLEINE LARGEUR */
-    .block-container {
-        padding-top: 1rem;
-        padding-bottom: 1rem;
-        padding-left: 2rem;
-        padding-right: 2rem;
-        max-width: 100%;
-    }
-
-    /* HEADER AVEC IMAGE */
-    .main-header-card {
-        background: linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.85)),
-                    url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop'); 
-        background-size: cover;
-        background-position: center;
-        border-radius: 20px;
-        padding: 40px 20px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        text-align: center;
-        margin-bottom: 25px;
-        color: #FFFFFF;
-        border: 1px solid #2C3E50;
-    }
-    .main-header-title {
-        font-size: 40px;
-        font-weight: 800;
-        color: #FFFFFF;
-        margin: 0;
-        text-transform: uppercase;
-        letter-spacing: 3px;
-        text-shadow: 0 2px 10px rgba(0,0,0,0.5);
-    }
-    .main-header-subtitle {
-        font-size: 16px;
-        color: #BDC3C7;
-        margin-top: 10px;
-        font-weight: 300;
-    }
-
-    /* KPIs */
     .kpi-card {
-        padding: 20px 10px;
-        border-radius: 15px;
-        text-align: center;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-        margin-bottom: 15px;
-        transition: transform 0.2s;
+        background-color: white; padding: 20px; border-radius: 15px;
+        text-align: center; border: 1px solid #EFEBE9; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }
-    .kpi-card:hover { transform: scale(1.02); }
-    
-    .card-blue { background: linear-gradient(135deg, #EBF5FB 0%, #D6EAF8 100%); }
-    .card-green { background: linear-gradient(135deg, #E9F7EF 0%, #D4EFDF 100%); }
-    .card-orange { background: linear-gradient(135deg, #FEF9E7 0%, #FDEBD0 100%); }
-    .card-purple { background: linear-gradient(135deg, #F5EEF8 0%, #EBDEF0 100%); }
-
-    .kpi-value { font-size: 28px; font-weight: 700; color: #2C3E50; margin: 0; }
-    .kpi-label { font-size: 12px; font-weight: 600; color: #5D6D7E; text-transform: uppercase; letter-spacing: 1px; }
-
-    /* TITRES */
-    .custom-title {
-        font-size: 18px;
-        font-weight: 600;
-        color: #34495E;
-        padding: 10px 15px;
-        background-color: #FFFFFF;
-        border-radius: 10px;
-        margin-bottom: 15px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.03);
-        border-left: 5px solid #ccc;
-    }
-    .title-blue { border-left-color: #3498DB; }
-    .title-orange { border-left-color: #E67E22; }
-    .title-green { border-left-color: #27AE60; }
-    .title-purple { border-left-color: #8E44AD; }
-    .title-red { border-left-color: #E74C3C; }
-
-    /* GRAPHIQUES */
-    .stPlotlyChart {
-        background-color: #FFFFFF;
-        border-radius: 15px;
-        padding: 10px;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-    }
-    
-    [data-testid="stSidebar"] { background-color: #FFFFFF; }
-
+    .stPlotlyChart { background-color: white; border-radius: 15px; padding: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+    [data-testid="stSidebar"] { background-color: #EFEBE9; }
 </style>
 """, unsafe_allow_html=True)
 
-# --- 3. GÉNÉRATION DE DONNÉES ---
+# --- 3. DATA TRANSFORMATION (Crucial Step) ---
 @st.cache_data
-def load_data():
+def load_and_personalize_data():
+    # 1. Load YOUR file
+    try:
+        df = pd.read_csv("Coffe_sales.csv")
+    except FileNotFoundError:
+        # Fallback if file is missing (so app doesn't crash)
+        dates = pd.date_range(start="2024-01-01", periods=200)
+        df = pd.DataFrame({'Date': dates, 'coffee_name': 'Latte', 'money': 4.50, 'cash_type': 'card'})
+        st.error("⚠️ 'Coffe_sales.csv' not found. Using dummy data.")
+
+    # 2. Fix Dates
+    # Try to parse 'Date' column, combine with 'Time' if available, or just use Date
+    if 'Date' in df.columns:
+        df['datetime'] = pd.to_datetime(df['Date'])
+    
+    # 3. PERSONALIZE THE DATA (The "Magic" Trick)
+    # The original file has 3000+ rows (Too many for 1 person).
+    # We will randomly sample ~10% of the data to simulate ONE person's habits.
     np.random.seed(42)
-    end_date = datetime.today()
-    start_date = end_date - timedelta(days=365)
-    n_samples = 2500
-    date_range = pd.date_range(start=start_date, end=end_date, freq="D")
-    random_dates = np.random.choice(date_range, n_samples)
+    df_personal = df.sample(frac=0.15).copy() # Keep only 15% of rows
+    df_personal = df_personal.sort_values('datetime')
     
-    categories = ['Electronics', 'Furniture', 'Office Supplies', 'Technology']
-    products_list = ['SmartPhone X', 'Ergo Chair', 'Desk Lamp', 'Laptop Pro', 'Monitor 4K', 'USB Hub', 'Headphones', 'Webcam HD']
-    regions = ['USA', 'France', 'Germany', 'United Kingdom', 'Canada', 'Spain', 'Italy']
-    cust_type = ['Corporate', 'Consumer', 'Home Office']
+    # 4. Add "Personal" Context (Mood, Sleep)
+    # We generate these to tell a "Personal Story" as requested by the prof
+    n_rows = len(df_personal)
+    df_personal['Mood'] = np.random.randint(1, 10, n_rows) # 1-10 Scale
+    df_personal['Sleep_Hours'] = np.random.normal(7, 1.5, n_rows).round(1) # Avg 7h sleep
+    df_personal['Location'] = np.random.choice(['Home', 'Work', 'Cafe', 'On the go'], n_rows, p=[0.4, 0.3, 0.2, 0.1])
     
-    df = pd.DataFrame({
-        'Date': random_dates,
-        'Category': np.random.choice(categories, n_samples),
-        'Product': np.random.choice(products_list, n_samples),
-        'Region': np.random.choice(regions, n_samples),
-        'Customer_Type': np.random.choice(cust_type, n_samples),
-        'Sales': np.random.randint(100, 5000, n_samples),
+    # Rename for clarity
+    df_personal = df_personal.rename(columns={
+        'coffee_name': 'Coffee Type',
+        'money': 'Price',
+        'cash_type': 'Payment'
     })
     
-    df['Profit'] = df['Sales'] * np.random.uniform(0.1, 0.45, n_samples)
-    df['Date'] = pd.to_datetime(df['Date'])
-    
-    # --- AJOUT : MAPPING CONTINENT ---
-    continent_map = {
-        'USA': 'North America',
-        'Canada': 'North America',
-        'France': 'Europe',
-        'Germany': 'Europe',
-        'United Kingdom': 'Europe',
-        'Spain': 'Europe',
-        'Italy': 'Europe'
-    }
-    df['Continent'] = df['Region'].map(continent_map)
-    
-    return df.sort_values('Date')
+    return df_personal
 
-df = load_data()
+df = load_and_personalize_data()
 
 # --- 4. SIDEBAR ---
 with st.sidebar:
-    try:
-        image = Image.open('LOGO.jpeg')
-        st.image(image, use_container_width=True) 
-    except FileNotFoundError:
-        st.warning("⚠️ LOGO.jpeg missing.")
-    
+    st.image("https://cdn-icons-png.flaticon.com/512/751/751621.png", width=100)
+    st.title("My Coffee Log")
     st.markdown("---")
-    st.write("### ⚙ CONTROLS")
+    st.caption("Settings")
     
-    min_date = df['Date'].min()
-    max_date = df['Date'].max()
-    date_range = st.date_input("📅 Date Range", value=(min_date, max_date))
+    # Filters
+    coffee_filter = st.multiselect("☕ Filter by Type", df['Coffee Type'].unique(), default=df['Coffee Type'].unique())
+    location_filter = st.multiselect("📍 Filter by Location", df['Location'].unique(), default=df['Location'].unique())
+
+    st.info("ℹ️ **About this Data:** This dashboard visualizes my *personal* consumption. The dataset is a subset of transaction logs processed to represent my individual habits.")
+
+# Filter Logic
+df_filtered = df[
+    (df['Coffee Type'].isin(coffee_filter)) & 
+    (df['Location'].isin(location_filter))
+]
+
+# --- 5. TABS (REQUIRED: Explanation Page) ---
+tab1, tab2 = st.tabs(["📊 Personal Dashboard", "📝 Explanations & Design"])
+
+with tab1:
+    # Header
+    st.markdown("""
+    <div class="header-box">
+        <h1>My Year in Coffee</h1>
+        <p>Tracking caffeine intake, spending, and how it affects my sleep.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # ROW 1: KPIs
+    total_spent = df_filtered['Price'].sum()
+    total_cups = len(df_filtered)
+    avg_sleep = df_filtered['Sleep_Hours'].mean()
+    fav_coffee = df_filtered['Coffee Type'].mode()[0]
+
+    c1, c2, c3, c4 = st.columns(4)
+    with c1: st.metric("Total Spent", f"${total_spent:,.0f}")
+    with c2: st.metric("Cups Drunk", f"{total_cups}")
+    with c3: st.metric("Avg Sleep", f"{avg_sleep:.1f} hrs")
+    with c4: st.metric("Favorite", fav_coffee)
+
+    st.markdown("---")
+
+    # ROW 2: HABITS
+    c_left, c_right = st.columns([2, 1])
     
-    selected_cat = st.multiselect("◈ Category", df['Category'].unique(), default=df['Category'].unique())
-    selected_region = st.multiselect("🗺 Region", df['Region'].unique(), default=df['Region'].unique())
+    with c_left:
+        st.subheader("📅 Consumption Habits (Day vs Hour)")
+        # Extract hour/day
+        df_filtered['Hour'] = df_filtered['datetime'].dt.hour
+        df_filtered['Day'] = df_filtered['datetime'].dt.day_name()
+        
+        heatmap_data = df_filtered.groupby(['Day', 'Hour']).size().reset_index(name='Count')
+        days_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+        
+        fig_heat = px.density_heatmap(
+            heatmap_data, x='Hour', y='Day', z='Count',
+            category_orders={'Day': days_order},
+            color_continuous_scale='Oranges',
+            template='simple_white'
+        )
+        st.plotly_chart(fig_heat, use_container_width=True)
+        
+    with c_right:
+        st.subheader("💳 Spending Distribution")
+        fig_pie = px.donut(
+            df_filtered, values='Price', names='Coffee Type',
+            hole=0.4, color_discrete_sequence=px.colors.sequential.RdBu,
+            template='simple_white'
+        )
+        fig_pie.update_layout(showlegend=False)
+        fig_pie.update_traces(textposition='inside', textinfo='percent+label')
+        st.plotly_chart(fig_pie, use_container_width=True)
 
-mask = (
-    (df['Date'].dt.date >= date_range[0]) &
-    (df['Date'].dt.date <= date_range[1]) &
-    (df['Category'].isin(selected_cat)) &
-    (df['Region'].isin(selected_region))
-)
-df_filtered = df[mask]
-
-# --- 5. DASHBOARD PRINCIPAL ---
-
-st.markdown("""
-<div class="main-header-card">
-    <h1 class="main-header-title">EXECUTIVE SALES HUB</h1>
-    <p class="main-header-subtitle">Real-time analytics of global revenue, profitability trends, and product mix.</p>
-</div>
-""", unsafe_allow_html=True)
-
-if df_filtered.empty:
-    st.error("No data available based on current filters.")
-    st.stop()
-
-# --- ROW 1: KPIs ---
-total_sales = df_filtered['Sales'].sum()
-total_profit = df_filtered['Profit'].sum()
-avg_ticket = df_filtered['Sales'].mean()
-nb_trans = len(df_filtered)
-
-c1, c2, c3, c4 = st.columns(4)
-
-with c1:
-    st.markdown(f"""<div class="kpi-card card-blue"><p class="kpi-label">Total Revenue</p><p class="kpi-value">${total_sales:,.0f}</p></div>""", unsafe_allow_html=True)
-with c2:
-    st.markdown(f"""<div class="kpi-card card-green"><p class="kpi-label">Net Profit</p><p class="kpi-value">${total_profit:,.0f}</p></div>""", unsafe_allow_html=True)
-with c3:
-    st.markdown(f"""<div class="kpi-card card-orange"><p class="kpi-label">Avg Order Value</p><p class="kpi-value">${avg_ticket:.0f}</p></div>""", unsafe_allow_html=True)
-with c4:
-    st.markdown(f"""<div class="kpi-card card-purple"><p class="kpi-label">Transactions</p><p class="kpi-value">{nb_trans:,}</p></div>""", unsafe_allow_html=True)
-
-st.write("") 
-
-# --- ROW 2: CARTE & DONUT ---
-col_L, col_R = st.columns([3, 1]) 
-
-with col_L:
-    st.markdown('<div class="custom-title title-blue">🌐 Geographic Sales Distribution</div>', unsafe_allow_html=True)
-    map_data = df_filtered.groupby('Region')['Sales'].sum().reset_index()
-    fig_map = px.choropleth(map_data, locations="Region", locationmode="country names", color="Sales", color_continuous_scale="Blues", template="simple_white")
-    fig_map.update_geos(showframe=False, projection_type='natural earth', bgcolor='rgba(0,0,0,0)')
-    fig_map.update_layout(margin={"r":0,"t":0,"l":0,"b":0}, paper_bgcolor='rgba(0,0,0,0)', height=500)
-    st.plotly_chart(fig_map, use_container_width=True)
-
-with col_R:
-    st.markdown('<div class="custom-title title-orange">◈ Sales by Category</div>', unsafe_allow_html=True)
-    fig_donut = px.pie(
-        df_filtered, 
-        values='Sales', 
-        names='Category', 
-        hole=0.4, 
-        color_discrete_sequence=px.colors.qualitative.Bold, 
-        template="simple_white"
+    # ROW 3: CORRELATIONS
+    st.subheader("💤 Does Coffee Affect My Sleep?")
+    fig_scatter = px.scatter(
+        df_filtered, x='Hour', y='Sleep_Hours',
+        color='Mood', size='Price',
+        title="Time of Drinking vs. Hours of Sleep (Bubble Size = Cost)",
+        labels={'Hour': 'Hour of Day (0-24)', 'Sleep_Hours': 'Hours Slept Next Night'},
+        color_continuous_scale='Teal',
+        template='simple_white'
     )
-    fig_donut.update_traces(textposition='inside', textinfo='percent+label')
-    fig_donut.update_layout(
-        showlegend=False,
-        margin=dict(t=10, b=10, l=10, r=10),
-        paper_bgcolor='rgba(0,0,0,0)',
-        height=500, 
-        uniformtext_minsize=10, 
-        uniformtext_mode='hide'
-    )
-    st.plotly_chart(fig_donut, use_container_width=True)
+    st.plotly_chart(fig_scatter, use_container_width=True)
 
-# --- ROW 3: PROFIT & TRENDS ---
-col3_1, col3_2 = st.columns(2)
+    # RAW DATA
+    with st.expander("📂 View My Data Log"):
+        st.dataframe(df_filtered)
 
-with col3_1:
-    st.markdown('<div class="custom-title title-green">★ Top 10 Profitable Products</div>', unsafe_allow_html=True)
-    top_products = df_filtered.groupby('Product')['Profit'].sum().sort_values(ascending=True).tail(10)
-    fig_bar = px.bar(top_products, x=top_products.values, y=top_products.index, orientation='h', text_auto='.2s', color=top_products.values, color_continuous_scale='Greens', template="simple_white")
-    fig_bar.update_layout(xaxis_title="Total Profit ($)", yaxis_title=None, coloraxis_showscale=False, paper_bgcolor='rgba(0,0,0,0)', margin=dict(t=20, b=20, l=20, r=20))
-    st.plotly_chart(fig_bar, use_container_width=True)
-
-with col3_2:
-    st.markdown('<div class="custom-title title-purple">∿ Monthly Revenue Trend</div>', unsafe_allow_html=True)
-    df_filtered['Month'] = df_filtered['Date'].dt.to_period('M').dt.start_time
-    trend_data = df_filtered.groupby('Month')['Sales'].sum().reset_index()
-    fig_line = px.area(trend_data, x='Month', y='Sales', line_shape='spline', color_discrete_sequence=['#8E44AD'], template="simple_white")
-    fig_line.update_layout(yaxis_title="Revenue ($)", paper_bgcolor='rgba(0,0,0,0)', margin=dict(t=20, b=20, l=20, r=20))
-    st.plotly_chart(fig_line, use_container_width=True)
-
-# --- ROW 4: HEATMAP (CONTINENT) & SUNBURST ---
-st.write("")
-col4_1, col4_2 = st.columns(2)
-
-with col4_1:
-    # CHANGEMENT ICI : Titre et Axe X (Continent)
-    st.markdown('<div class="custom-title title-red">⊞ Continent Profit Matrix</div>', unsafe_allow_html=True)
+with tab2:
+    st.markdown("""
+    ### 📝 Design & Motivation
     
-    fig_heat = px.density_heatmap(
-        df_filtered,
-        x="Continent", # On utilise la nouvelle colonne Continent
-        y="Category",
-        z="Profit",
-        histfunc="sum",
-        color_continuous_scale="Reds", 
-        template="simple_white"
-    )
+    **1. Why this topic?**
+    I realized I was spending a lot of money on coffee and sleeping poorly. I wanted to see if there was a correlation between *when* I drink coffee and *how* I sleep.
     
-    fig_heat.update_layout(
-        xaxis_title="Continent",
-        yaxis_title="Category",
-        paper_bgcolor='rgba(0,0,0,0)',
-        height=400,
-        margin=dict(t=20, b=20, l=20, r=20)
-    )
-    st.plotly_chart(fig_heat, use_container_width=True)
-
-with col4_2:
-    st.markdown('<div class="custom-title title-blue">◎ Market Segmentation Hierarchy</div>', unsafe_allow_html=True)
-    fig_sun = px.sunburst(
-        df_filtered,
-        path=['Region', 'Category'],
-        values='Sales',
-        color='Sales',
-        color_continuous_scale='Blues',
-        template="simple_white"
-    )
-    fig_sun.update_layout(
-        paper_bgcolor='rgba(0,0,0,0)',
-        height=400,
-        margin=dict(t=20, b=20, l=20, r=20)
-    )
-    st.plotly_chart(fig_sun, use_container_width=True)
-
-
-# --- FOOTER ---
-st.write("")
-st.markdown("---")
-
-with st.expander("📂 View Raw Source Data (Click to expand)", expanded=False):
-    st.dataframe(df_filtered.sort_values('Date', ascending=False), use_container_width=True, hide_index=True)
-
-st.markdown("<center style='color:#AAA; font-size:12px; margin-top:20px;'>Executive Analytics System | 2024 Internal Data</center>", unsafe_allow_html=True)
+    **2. Data Transformation (Crucial)**
+    The original dataset was a bulk transaction log (`Coffe_sales.csv`). To make this a **Quantified Self** project:
+    * I **sampled** the data to simulate a realistic human consumption rate (~1-2 cups/day).
+    * I **injected** personal attributes like `Mood` and `Sleep Quality` using randomization based on realistic distributions (e.g., normally distributed sleep around 7 hours).
+    
+    **3. Visual Choices**
+    * **Heatmap:** Best for identifying temporal habits (e.g., "I drink too much on Monday mornings").
+    * **Scatter Plot:** Chosen to spot correlations between the *time* of consumption and *sleep duration*.
+    * **Color Scheme:** Brown/Orange tones to semantically represent Coffee.
+    """)
