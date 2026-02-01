@@ -102,6 +102,7 @@ def load_data():
     # Création colonne datetime robuste
     try:
         if 'Time_Str' in df.columns and 'Date_Str' in df.columns:
+            # On convertit les deux en string pour éviter les erreurs de type
             df['datetime'] = pd.to_datetime(df['Date_Str'].astype(str) + ' ' + df['Time_Str'].astype(str), errors='coerce')
         elif 'Date_Str' in df.columns:
             df['datetime'] = pd.to_datetime(df['Date_Str'], errors='coerce')
@@ -145,8 +146,7 @@ def load_data():
     if 'Caffeine_mg' not in df_personal.columns:
         df_personal['Caffeine_mg'] = df_personal['Type'].apply(lambda x: caffeine_map.get(str(x), 80))
     
-    # --- D. COLONNES DÉRIVÉES (LA SOLUTION AU BUG) ---
-    # On crée Date_Only directement depuis datetime, c'est infaillible.
+    # --- D. COLONNES DÉRIVÉES ---
     df_personal['Date_Only'] = df_personal['datetime'].dt.date
     df_personal['Date_Str_Clean'] = df_personal['datetime'].dt.strftime('%Y-%m-%d')
     df_personal['Hour'] = df_personal['datetime'].dt.hour
@@ -217,7 +217,7 @@ with tab_overview:
     
     st.markdown("---")
     
-    # Insight Automatique (Nouveau)
+    # Insight Automatique
     if avg_mood > 7:
         st.success(f"🌟 **Insight:** Votre humeur est excellente sur cette période ! Le {fav_coffee} semble vous réussir.")
     else:
@@ -259,7 +259,6 @@ with tab_health:
     c1, c2 = st.columns(2)
     
     with c1:
-        # CORRECTION BUG: Utilisation de Date_Str_Clean qui est sûre d'exister
         daily_caf = df_filtered.groupby('Date_Str_Clean')['Caffeine_mg'].sum().reset_index()
         fig_caf = go.Figure()
         fig_caf.add_trace(go.Bar(x=daily_caf['Date_Str_Clean'], y=daily_caf['Caffeine_mg'], name='Ma Conso', marker_color='#6D4C41'))
@@ -278,8 +277,12 @@ with tab_health:
             template='simple_white',
             labels={'Hour': 'Heure de consommation', 'Sleep Quality': 'Qualité Sommeil'}
         )
-        # Ligne de tendance visuelle
-        fig_sleep.add_shape(type="line", x0=17, y0=9, x1=23, y1=5, line=dict(color="red", width=2, dash="dot", opacity=0.5))
+        # CORRECTION DU BUG ICI : Suppression de 'opacity' et utilisation de 'rgba' pour la couleur
+        fig_sleep.add_shape(
+            type="line", 
+            x0=17, y0=9, x1=23, y1=5, 
+            line=dict(color="rgba(255, 0, 0, 0.5)", width=2, dash="dot")
+        )
         st.plotly_chart(fig_sleep, use_container_width=True)
 
 # --- TAB 3: FINANCES ---
@@ -312,11 +315,10 @@ with tab_finance:
         
         # Prédiction simple (Linéaire)
         last_val = df_filtered['Cumul_Spend'].iloc[-1]
-        predicted_val = last_val * 1.1 # +10% projection
         
         fig_trend = px.area(
             df_filtered, x='datetime', y='Cumul_Spend',
-            title="Dépense Cumulée & Projection",
+            title="Dépense Cumulée",
             color_discrete_sequence=['#8D6E63'],
             template="simple_white"
         )
