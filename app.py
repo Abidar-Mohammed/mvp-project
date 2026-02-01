@@ -5,120 +5,115 @@ import plotly.express as px
 import plotly.graph_objects as go
 import os
 
-# --- 1. CONFIGURATION DE LA PAGE ---
+# --- 1. PAGE CONFIGURATION ---
 st.set_page_config(
-    page_title="My Coffee Journal | Ultimate",
-    page_icon="☕",
+    page_title="The Quantified Coffee",
+    page_icon="◆",
     layout="wide",
-    initial_sidebar_state="collapsed" # Sidebar fermée par défaut pour l'immersion
+    initial_sidebar_state="collapsed"
 )
 
-# --- 2. CSS ULTIMATE (DARK & GOLD THEME) ---
+# --- 2. ULTIMATE CSS (Dark, English, Scrollable) ---
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700&family=Playfair+Display:wght@700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Playfair+Display:wght@700&display=swap');
 
-    /* FOND GLOBAL */
+    /* GLOBAL BACKGROUND */
     .stApp {
-        background-image: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.9)), 
+        background-image: linear-gradient(rgba(10, 10, 10, 0.85), rgba(10, 10, 10, 0.95)), 
                           url("https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=2670&auto=format&fit=crop");
         background-attachment: fixed;
         background-size: cover;
     }
 
-    /* CONTENEUR PRINCIPAL (Carte Vitrée) */
+    /* GLASSMORPHISM CONTAINER */
     .main .block-container {
-        background: rgba(20, 20, 20, 0.75);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border-radius: 20px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        padding: 3rem;
-        margin-top: 2rem;
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
-        max-width: 95% !important;
+        background: rgba(18, 18, 18, 0.85); /* Darker glass */
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border-right: 1px solid rgba(255, 255, 255, 0.05);
+        border-left: 1px solid rgba(255, 255, 255, 0.05);
+        padding: 3rem 5rem; /* Wider padding for elegance */
+        max-width: 1200px !important;
+        margin: 0 auto;
+        box-shadow: 0 0 50px rgba(0,0,0,0.8);
     }
 
-    /* TYPOGRAPHIE */
+    /* TYPOGRAPHY */
     h1, h2, h3 {
         font-family: 'Playfair Display', serif;
-        color: #D4AF37 !important; /* Or Métallique */
-        text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        color: #D4AF37 !important; /* Metallic Gold */
+        text-transform: uppercase;
+        letter-spacing: 1px;
     }
     
-    p, label, span, div {
+    p, label, span, div, li {
         font-family: 'Montserrat', sans-serif;
-        color: #E0E0E0;
+        color: #B0BEC5;
     }
 
-    /* HEADER */
-    .header-title {
-        text-align: center;
-        margin-bottom: 40px;
+    /* SECTION HEADERS (Instead of Tabs) */
+    .section-header {
+        border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+        padding-bottom: 10px;
+        margin-top: 60px;
+        margin-bottom: 30px;
+        font-size: 1.8rem;
+        color: #E0E0E0;
+        font-family: 'Playfair Display', serif;
     }
-    .header-title h1 {
-        font-size: 4rem;
-        margin-bottom: 0;
+
+    /* MAIN TITLE */
+    .main-title {
+        text-align: center;
+        margin-bottom: 60px;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        padding-bottom: 40px;
+    }
+    .main-title h1 {
+        font-size: 4.5rem;
         background: -webkit-linear-gradient(#FDD835, #D4AF37);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
+        margin: 0;
     }
-    .header-title p {
-        font-size: 1.2rem;
-        letter-spacing: 3px;
+    .main-title p {
+        font-size: 1.1rem;
+        letter-spacing: 4px;
         text-transform: uppercase;
-        color: #BDBDBD !important;
+        color: #757575 !important;
+        margin-top: 10px;
     }
 
-    /* CARTES KPI (METRICS) */
+    /* METRICS / KPIs */
     div[data-testid="metric-container"] {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 0px; /* Sharp edges for pro look */
         padding: 20px;
-        transition: transform 0.3s ease;
-    }
-    div[data-testid="metric-container"]:hover {
-        transform: translateY(-5px);
-        border-color: #D4AF37;
-        background: rgba(255, 255, 255, 0.08);
+        text-align: center;
     }
     div[data-testid="metric-container"] label {
-        font-size: 0.9rem;
-        color: #B0BEC5 !important;
+        font-size: 0.8rem;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: #78909C !important;
     }
     div[data-testid="metric-container"] div[data-testid="stMetricValue"] {
-        font-size: 2rem;
-        color: #FFECB3 !important; /* Crème */
+        font-size: 2.2rem;
+        color: #FFF8E1 !important; /* Cream */
+        font-family: 'Playfair Display', serif;
     }
 
-    /* ONGLETS MODERNES */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 20px;
-        border-bottom: 1px solid rgba(255,255,255,0.1);
-        padding-bottom: 10px;
-    }
-    .stTabs [data-baseweb="tab"] {
-        background-color: transparent;
-        color: #9E9E9E;
-        border: none;
-        font-size: 1.1rem;
-    }
-    .stTabs [aria-selected="true"] {
-        color: #D4AF37 !important;
-        font-weight: bold;
-        border-bottom: 2px solid #D4AF37 !important;
-    }
-
-    /* GRAPHIQUES PLOTLY */
+    /* CHARTS */
     .stPlotlyChart {
         background-color: transparent !important;
-        border-radius: 10px;
+        margin-bottom: 20px;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# --- 3. CHARGEMENT ROBUSTE ---
+# --- 3. ROBUST DATA LOADING (English Columns) ---
 @st.cache_data
 def load_data():
     file_name = "my_coffee_life.csv"
@@ -131,31 +126,31 @@ def load_data():
             break
             
     if not path:
-        # Données de secours silencieuses
-        dates = pd.date_range(start="2024-01-01", periods=150)
+        # Dummy data generator if file missing
+        dates = pd.date_range(start="2024-01-01", periods=200)
         df = pd.DataFrame({
             'datetime': dates,
-            'location': np.random.choice(['Home', 'Work', 'Coffee Shop'], 150),
-            'social_context': np.random.choice(['Alone', 'Friends', 'Colleagues'], 150),
-            'activity': np.random.choice(['Working', 'Reading', 'Socializing'], 150),
-            'weather': np.random.choice(['Sunny', 'Rainy', 'Cloudy'], 150),
-            'coffee_type': np.random.choice(['Espresso', 'Latte', 'Cappuccino'], 150),
-            'price': np.random.uniform(0, 6, 150),
-            'caffeine_mg': np.random.randint(50, 150, 150),
-            'mood_before': np.random.randint(3, 8, 150),
-            'mood_after': np.random.randint(5, 10, 150),
-            'sleep_hours_next_night': np.random.uniform(5, 9, 150)
+            'location': np.random.choice(['Home', 'Work', 'Coffee Shop'], 200),
+            'social_context': np.random.choice(['Alone', 'Friends', 'Colleagues'], 200),
+            'activity': np.random.choice(['Working', 'Reading', 'Socializing'], 200),
+            'weather': np.random.choice(['Sunny', 'Rainy', 'Cloudy'], 200),
+            'coffee_type': np.random.choice(['Espresso', 'Latte', 'Cappuccino'], 200),
+            'price': np.random.uniform(0, 6, 200),
+            'caffeine_mg': np.random.randint(50, 150, 200),
+            'mood_before': np.random.randint(3, 8, 200),
+            'mood_after': np.random.randint(5, 10, 200),
+            'sleep_hours_next_night': np.random.uniform(5, 9, 200)
         })
     else:
         df = pd.read_csv(path)
         df['datetime'] = pd.to_datetime(df['datetime'])
 
-    # Sécurisation des colonnes
-    required_cols = ['weather', 'social_context', 'location', 'activity', 'stress_level', 'pleasure_score']
-    for col in required_cols:
-        if col not in df.columns:
-            df[col] = "Unknown" if col in ['weather', 'social_context', 'location', 'activity'] else 0
+    # Ensure all columns exist (Safety check)
+    cols = ['weather', 'social_context', 'location', 'activity', 'stress_level', 'pleasure_score']
+    for c in cols:
+        if c not in df.columns: df[c] = "Unknown" if c in ['weather', 'social_context'] else 0
 
+    # Enrich Data (English)
     df['Hour'] = df['datetime'].dt.hour
     df['DayOfWeek'] = df['datetime'].dt.day_name()
     df['Mood_Boost'] = df['mood_after'] - df['mood_before']
@@ -164,21 +159,21 @@ def load_data():
 
 df = load_data()
 
-# --- 4. SIDEBAR (FILTRES) ---
+# --- 4. SIDEBAR (Filters) ---
 with st.sidebar:
-    st.markdown("### ⚙️ Paramètres")
+    st.markdown("### ◆ SETTINGS")
     if not df.empty:
         min_d = df['datetime'].min().date()
         max_d = df['datetime'].max().date()
-        date_range = st.date_input("📅 Période", value=(min_d, max_d), min_value=min_d, max_value=max_d)
+        date_range = st.date_input("Date Range", value=(min_d, max_d), min_value=min_d, max_value=max_d)
         
         social_opts = list(df['social_context'].unique())
-        social_filter = st.multiselect("👥 Social", social_opts, default=social_opts)
+        social_filter = st.multiselect("Social Context", social_opts, default=social_opts)
 
     st.markdown("---")
-    st.info("Données personnelles | Quantified Self Project")
+    st.caption("Personal Analytics | 2024")
 
-# Filtres
+# Filter Logic
 if not df.empty:
     mask = (df['datetime'].dt.date >= date_range[0]) & (df['datetime'].dt.date <= date_range[1])
     if social_filter:
@@ -187,163 +182,164 @@ if not df.empty:
 else:
     st.stop()
 
-# --- 5. HEADER PRINCIPAL ---
+# --- 5. MAIN PAGE LAYOUT (SCROLLABLE) ---
+
+# HEADER
 st.markdown("""
-<div class="header-title">
+<div class="main-title">
     <h1>THE QUANTIFIED COFFEE</h1>
-    <p>Analytics Personnels & Impact Biologique</p>
+    <p>A Personal Data Study on Habits, Health & Expenses</p>
 </div>
 """, unsafe_allow_html=True)
 
 if df_filtered.empty:
-    st.error("Aucune donnée disponible.")
+    st.error("No data available for the selected range.")
     st.stop()
 
-# --- 6. CONTENU (3 ONGLETS SEULEMENT) ---
-# Suppression de l'onglet Méthodologie comme demandé
-tab1, tab2, tab3 = st.tabs([
-    "📊 Vue d'Ensemble", "🧬 Style de Vie", "🧪 Impact & Santé"
-])
+# --- SECTION 1: GLOBAL OVERVIEW ---
+st.markdown('<div class="section-header">01. EXECUTIVE SUMMARY</div>', unsafe_allow_html=True)
 
-# CONFIGURATION PLOTLY COMMUNE (POUR UN LOOK TRANSPARENT)
-common_layout = dict(
+# KPIs
+c1, c2, c3, c4 = st.columns(4)
+c1.metric("TOTAL CUPS", len(df_filtered))
+c2.metric("TOTAL SPEND", f"${df_filtered['price'].sum():.0f}")
+c3.metric("CAFFEINE INTAKE", f"{df_filtered['caffeine_mg'].sum()/1000:.1f} g")
+c4.metric("MOOD BOOST", f"+{df_filtered['Mood_Boost'].mean():.1f}")
+
+st.write("") # Spacer
+
+# Charts Row 1
+col_L, col_R = st.columns([2, 1])
+
+# Common layout style for Plotly transparency
+layout_style = dict(
     paper_bgcolor='rgba(0,0,0,0)',
     plot_bgcolor='rgba(0,0,0,0)',
-    font=dict(color='#E0E0E0'),
-    margin=dict(t=30, l=10, r=10, b=10),
+    font=dict(color='#B0BEC5', family="Montserrat"),
+    margin=dict(t=40, l=20, r=20, b=20)
 )
 
-# --- TAB 1: OVERVIEW ---
-with tab1:
-    # KPIs
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Total Cafés", len(df_filtered))
-    c2.metric("Budget", f"${df_filtered['price'].sum():.0f}")
-    c3.metric("Caféine", f"{df_filtered['caffeine_mg'].sum()/1000:.1f} g")
-    c4.metric("Gain Humeur", f"+{df_filtered['Mood_Boost'].mean():.1f}")
+with col_L:
+    st.markdown("##### ◆ TEMPORAL HABITS")
+    hm_data = df_filtered.groupby(['DayOfWeek', 'Hour']).size().reset_index(name='Count')
+    days_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
     
-    st.markdown("---")
-    
-    col_L, col_R = st.columns([2, 1])
-    
-    with col_L:
-        st.subheader("🕰️ Carte de Chaleur (Habitudes)")
-        hm_data = df_filtered.groupby(['DayOfWeek', 'Hour']).size().reset_index(name='Count')
-        days_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-        
-        fig_heat = px.density_heatmap(
-            hm_data, x='Hour', y='DayOfWeek', z='Count',
-            category_orders={'DayOfWeek': days_order},
-            color_continuous_scale='Oranges',
-            title="Quand est-ce que je bois du café ?"
-        )
-        fig_heat.update_layout(**common_layout)
-        fig_heat.update_coloraxes(colorbar_bgcolor="rgba(0,0,0,0)", colorbar_title="")
-        st.plotly_chart(fig_heat, use_container_width=True)
-        
-    with col_R:
-        st.subheader("☕ Répartition")
-        fig_pie = px.pie(
+    fig_heat = px.density_heatmap(
+        hm_data, x='Hour', y='DayOfWeek', z='Count',
+        category_orders={'DayOfWeek': days_order},
+        color_continuous_scale='Oranges',
+    )
+    fig_heat.update_layout(**layout_style)
+    fig_heat.update_coloraxes(colorbar_bgcolor="rgba(0,0,0,0)", colorbar_title="")
+    st.plotly_chart(fig_heat, use_container_width=True)
+
+with col_R:
+    st.markdown("##### ◆ BUDGET SPLIT")
+    fig_pie = px.pie(
+        df_filtered, 
+        values='price', 
+        names='coffee_type', 
+        hole=0.7,
+        color_discrete_sequence=px.colors.sequential.Brwnyl
+    )
+    fig_pie.update_traces(textposition='outside', textinfo='percent')
+    fig_pie.update_layout(showlegend=False, **layout_style)
+    st.plotly_chart(fig_pie, use_container_width=True)
+
+
+# --- SECTION 2: LIFESTYLE & CONTEXT ---
+st.markdown('<div class="section-header">02. LIFESTYLE & CONTEXT</div>', unsafe_allow_html=True)
+
+col1, col2 = st.columns(2)
+
+with col1:
+    st.markdown("##### ◆ HIERARCHY: LOCATION > ACTIVITY > TYPE")
+    if df_filtered['location'].nunique() > 0:
+        fig_sun = px.sunburst(
             df_filtered, 
-            values='price', 
-            names='coffee_type', 
-            hole=0.7, # Donut très fin (élégant)
-            color_discrete_sequence=px.colors.sequential.Brwnyl,
-            title="Budget par Type"
+            path=['location', 'activity', 'coffee_type'], 
+            values='price',
+            color='location',
+            color_discrete_sequence=px.colors.qualitative.Pastel
         )
-        fig_pie.update_traces(textposition='outside', textinfo='percent')
-        fig_pie.update_layout(showlegend=False, **common_layout)
-        st.plotly_chart(fig_pie, use_container_width=True)
+        fig_sun.update_layout(**layout_style, height=450)
+        st.plotly_chart(fig_sun, use_container_width=True)
 
-# --- TAB 2: LIFESTYLE ---
-with tab2:
-    st.subheader("🌍 Contexte & Environnement")
+with col2:
+    st.markdown("##### ◆ WEATHER INFLUENCE")
+    if df_filtered['weather'].nunique() > 1:
+        weather_counts = df_filtered.groupby(['weather', 'coffee_type']).size().reset_index(name='Count')
+        fig_bar = px.bar(
+            weather_counts, x='Count', y='weather', color='coffee_type',
+            orientation='h',
+            color_discrete_sequence=px.colors.sequential.RdBu
+        )
+        fig_bar.update_layout(**layout_style, yaxis_title=None)
+        st.plotly_chart(fig_bar, use_container_width=True)
+    else:
+        st.info("Insufficient weather data.")
+
+
+# --- SECTION 3: BIOLOGICAL IMPACT ---
+st.markdown('<div class="section-header">03. BIOLOGICAL IMPACT</div>', unsafe_allow_html=True)
+
+col_bio1, col_bio2 = st.columns([3, 2])
+
+with col_bio1:
+    st.markdown("##### ◆ CORRELATION: TIME VS SLEEP")
+    fig_sleep = px.scatter(
+        df_filtered, x='Hour', y='sleep_hours_next_night',
+        size='caffeine_mg', color='location',
+        color_discrete_sequence=px.colors.qualitative.Bold,
+        labels={'sleep_hours_next_night': 'Sleep Duration (Hours)', 'Hour': 'Hour of Intake'}
+    )
+    # Danger Zone
+    fig_sleep.add_vrect(
+        x0=16, x1=24, 
+        fillcolor="red", opacity=0.1, line_width=0,
+        annotation_text="DANGER ZONE (>4PM)", annotation_position="top left", annotation_font_color="salmon"
+    )
+    fig_sleep.update_layout(**layout_style)
+    st.plotly_chart(fig_sleep, use_container_width=True)
+
+with col_bio2:
+    st.markdown("##### ◆ MULTIDIMENSIONAL PROFILE")
+    # Radar Chart
+    cols_radar = ['price', 'caffeine_mg', 'stress_level', 'pleasure_score']
+    # Ensure numeric
+    for c in cols_radar:
+        df_filtered[c] = pd.to_numeric(df_filtered[c], errors='coerce').fillna(0)
     
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown("**Hiérarchie : Lieu > Activité > Café**")
-        if df_filtered['location'].nunique() > 0:
-            fig_sun = px.sunburst(
-                df_filtered, 
-                path=['location', 'activity', 'coffee_type'], 
-                values='price',
-                color='location',
-                color_discrete_sequence=px.colors.qualitative.Pastel
-            )
-            fig_sun.update_layout(**common_layout)
-            st.plotly_chart(fig_sun, use_container_width=True)
-        else:
-            st.info("Données insuffisantes.")
+    radar_data = df_filtered.groupby('location')[cols_radar].mean().reset_index()
+    # Normalize
+    for c in cols_radar:
+        if radar_data[c].max() > 0:
+            radar_data[c] = radar_data[c] / radar_data[c].max()
             
-    with col2:
-        st.markdown("**Influence de la Météo**")
-        if df_filtered['weather'].nunique() > 1:
-            weather_counts = df_filtered.groupby(['weather', 'coffee_type']).size().reset_index(name='Count')
-            fig_bar = px.bar(
-                weather_counts, x='Count', y='weather', color='coffee_type',
-                orientation='h',
-                color_discrete_sequence=px.colors.sequential.RdBu,
-                title="Météo vs Choix"
-            )
-            fig_bar.update_layout(**common_layout)
-            st.plotly_chart(fig_bar, use_container_width=True)
-        else:
-            st.info("Données météo non variées.")
+    fig_radar = go.Figure()
+    for i, row in radar_data.iterrows():
+        fig_radar.add_trace(go.Scatterpolar(
+            r=[row[c] for c in cols_radar],
+            theta=['COST', 'CAFFEINE', 'STRESS', 'PLEASURE'], 
+            fill='toself', 
+            name=row['location'],
+            line_width=1.5
+        ))
+    
+    fig_radar.update_layout(
+        polar=dict(
+            radialaxis=dict(visible=True, showticklabels=False, linecolor='#555'),
+            bgcolor='rgba(255,255,255,0.02)'
+        ),
+        **layout_style,
+        height=400
+    )
+    st.plotly_chart(fig_radar, use_container_width=True)
 
-# --- TAB 3: IMPACT & SANTÉ ---
-with tab3:
-    st.subheader("🧬 Biologie & Impact")
-    
-    col_bio1, col_bio2 = st.columns(2)
-    
-    with col_bio1:
-        st.markdown("#### 💤 Heure vs Sommeil")
-        fig_sleep = px.scatter(
-            df_filtered, x='Hour', y='sleep_hours_next_night',
-            size='caffeine_mg', color='location',
-            color_discrete_sequence=px.colors.qualitative.Bold,
-            labels={'sleep_hours_next_night': 'Heures de Sommeil'}
-        )
-        # Zone Critique (Design subtil)
-        fig_sleep.add_vrect(
-            x0=16, x1=24, 
-            fillcolor="red", opacity=0.1, 
-            line_width=0,
-            annotation_text="DANGER (16h+)", annotation_font_color="salmon"
-        )
-        fig_sleep.update_layout(**common_layout)
-        st.plotly_chart(fig_sleep, use_container_width=True)
-        
-    with col_bio2:
-        st.markdown("#### 🙂 Profil Multidimensionnel")
-        # Radar Chart
-        cols_radar = ['price', 'caffeine_mg', 'stress_level', 'pleasure_score']
-        # Sécurité numérique
-        for c in cols_radar:
-            df_filtered[c] = pd.to_numeric(df_filtered[c], errors='coerce').fillna(0)
-        
-        radar_data = df_filtered.groupby('location')[cols_radar].mean().reset_index()
-        # Normalisation
-        for c in cols_radar:
-            if radar_data[c].max() > 0:
-                radar_data[c] = radar_data[c] / radar_data[c].max()
-                
-        fig_radar = go.Figure()
-        for i, row in radar_data.iterrows():
-            fig_radar.add_trace(go.Scatterpolar(
-                r=[row[c] for c in cols_radar],
-                theta=['Coût', 'Caféine', 'Stress', 'Plaisir'], 
-                fill='toself', 
-                name=row['location'],
-                line_width=1
-            ))
-        
-        fig_radar.update_layout(
-            polar=dict(
-                radialaxis=dict(visible=True, showticklabels=False, linecolor='#555'),
-                bgcolor='rgba(255,255,255,0.05)'
-            ),
-            **common_layout
-        )
-        st.plotly_chart(fig_radar, use_container_width=True)
+# --- FOOTER ---
+st.markdown("---")
+st.markdown("""
+<div style="text-align: center; color: #757575; font-size: 0.8rem; margin-top: 50px;">
+    VISUAL ANALYTICS PROJECT 2024 | QUANTIFIED SELF | DATA: 1 YEAR LOG
+</div>
+""", unsafe_allow_html=True)
