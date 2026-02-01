@@ -7,227 +7,183 @@ import os
 
 # --- 1. CONFIGURATION DE LA PAGE ---
 st.set_page_config(
-    page_title="My Quantified Self: Coffee",
+    page_title="My Quantified Coffee Life",
     page_icon="☕",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# --- 2. CSS PERSONNALISÉ ---
+# --- 2. DESIGN & CSS (Thème Café/Journal) ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap');
     
     html, body, [class*="css"]  { 
         font-family: 'Lato', sans-serif; 
-        background-color: #FDFBF7; 
-        color: #4E342E; 
+        background-color: #FAF8F5; /* Papier crème */
+        color: #3E2723; /* Marron très foncé */
     }
     
+    h1, h2, h3 { color: #4E342E; }
+    
+    /* Header Personnalisé */
     .header-box {
-        background: linear-gradient(135deg, #3E2723 0%, #5D4037 100%);
-        padding: 30px; 
+        background: linear-gradient(135deg, #3E2723 0%, #6D4C41 100%);
+        padding: 40px; 
         border-radius: 20px; 
         text-align: center; 
         color: #FFFFFF;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
-        margin-bottom: 25px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15); 
+        margin-bottom: 30px;
     }
     
+    /* Cartes KPI */
     div[data-testid="metric-container"] {
         background-color: white;
-        border: 1px solid #D7CCC8;
-        border-radius: 12px;
+        border-left: 5px solid #8D6E63;
+        border-radius: 10px;
         padding: 15px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        text-align: center;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.05);
     }
 
+    /* Graphiques */
     .stPlotlyChart { 
         background-color: white; 
         border-radius: 15px; 
-        padding: 10px; 
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05); 
-        border: 1px solid #EFEBE9;
+        padding: 15px; 
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
+    }
+    
+    /* Onglets */
+    .stTabs [data-baseweb="tab-list"] { gap: 24px; }
+    .stTabs [data-baseweb="tab"] {
+        height: 50px;
+        white-space: pre-wrap;
+        background-color: #EFEBE9;
+        border-radius: 4px 4px 0px 0px;
+        gap: 1px;
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+    .stTabs [aria-selected="true"] {
+        background-color: #FFFFFF;
+        color: #3E2723;
+        font-weight: bold;
+        border-top: 2px solid #3E2723;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# --- 3. FONCTIONS DE DONNÉES ROBUSTES ---
-def generate_dummy_data():
-    """Génère des données de secours si le CSV est absent."""
-    dates = pd.date_range(start="2024-01-01", periods=300, freq="D")
-    df = pd.DataFrame({'datetime': dates})
-    df['Type'] = np.random.choice(['Latte', 'Americano', 'Espresso'], 300)
-    df['Price'] = np.random.uniform(2, 5, 300)
-    # Données perso simulées
-    df['Mood Score'] = np.random.randint(5, 11, 300)
-    df['Sleep Quality'] = np.random.normal(7.5, 1.0, 300).clip(4, 10)
-    df['Caffeine_mg'] = 80
-    df['Location'] = 'Home'
-    return df
-
+# --- 3. CHARGEMENT DES DONNÉES ---
 @st.cache_data
 def load_data():
-    # --- A. CHARGEMENT FICHIER ---
-    file_name = "Coffe_sales.csv"
-    df = None
+    file_name = "my_coffee_life.csv"
     
-    # Stratégies de recherche du fichier
-    possible_paths = [
-        file_name,
-        os.path.join(os.path.dirname(__file__), file_name)
-    ]
+    # Recherche robuste du fichier
+    path = None
+    if os.path.exists(file_name):
+        path = file_name
+    elif os.path.exists(os.path.join(os.path.dirname(__file__), file_name)):
+        path = os.path.join(os.path.dirname(__file__), file_name)
     
-    for path in possible_paths:
-        if os.path.exists(path):
-            try:
-                df = pd.read_csv(path)
-                break
-            except:
-                continue
-    
-    if df is None:
-        df = generate_dummy_data()
-
-    # --- B. NETTOYAGE & RENOMMAGE ---
-    df.columns = df.columns.str.strip()
-    col_map = {
-        'coffee_name': 'Type', 'coffee_type': 'Type', 
-        'money': 'Price', 'price': 'Price',
-        'Date': 'Date_Str', 'date': 'Date_Str', 'Time': 'Time_Str'
-    }
-    df = df.rename(columns=col_map)
-    
-    # Création colonne datetime robuste
-    try:
-        if 'Time_Str' in df.columns and 'Date_Str' in df.columns:
-            # On convertit les deux en string pour éviter les erreurs de type
-            df['datetime'] = pd.to_datetime(df['Date_Str'].astype(str) + ' ' + df['Time_Str'].astype(str), errors='coerce')
-        elif 'Date_Str' in df.columns:
-            df['datetime'] = pd.to_datetime(df['Date_Str'], errors='coerce')
-        else:
-            # Si pas de colonne date, on garde le datetime existant (cas dummy)
-            if 'datetime' not in df.columns:
-                 df['datetime'] = pd.to_datetime("2024-01-01")
-    except:
-        df = generate_dummy_data()
-
-    # Supprimer les dates invalides
-    df = df.dropna(subset=['datetime'])
-
-    # --- C. ENRICHISSEMENT "PERSONAL DATA" ---
-    df = df.sort_values('datetime')
-    np.random.seed(42)
-    
-    # Echantillonnage (Simulation d'une personne unique)
-    if len(df) > 800:
-        df_personal = df.sample(frac=0.15).copy()
-    else:
-        df_personal = df.copy()
+    if path:
+        df = pd.read_csv(path)
         
-    df_personal = df_personal.sort_values('datetime')
-    n = len(df_personal)
-    
-    # Ajout attributs persos (Si pas déjà présents)
-    if 'Mood Score' not in df_personal.columns:
-        df_personal['Mood Score'] = np.random.randint(4, 11, n)
-    if 'Sleep Quality' not in df_personal.columns:
-        df_personal['Sleep Quality'] = np.random.normal(7.2, 1.1, n).clip(4, 10).round(1)
-    if 'Location' not in df_personal.columns:
-        df_personal['Location'] = np.random.choice(['Home', 'Office', 'University', 'Cafe'], n, p=[0.3, 0.4, 0.2, 0.1])
-    
-    # Estimation Caféine
-    caffeine_map = {
-        'Latte': 75, 'Americano': 95, 'Espresso': 63, 'Cappuccino': 80, 
-        'Cocoa': 5, 'Hot Chocolate': 5, 'Tea': 40
-    }
-    # Utilisation de .get pour éviter les erreurs si le type est inconnu
-    if 'Caffeine_mg' not in df_personal.columns:
-        df_personal['Caffeine_mg'] = df_personal['Type'].apply(lambda x: caffeine_map.get(str(x), 80))
-    
-    # --- D. COLONNES DÉRIVÉES ---
-    df_personal['Date_Only'] = df_personal['datetime'].dt.date
-    df_personal['Date_Str_Clean'] = df_personal['datetime'].dt.strftime('%Y-%m-%d')
-    df_personal['Hour'] = df_personal['datetime'].dt.hour
-    df_personal['DayOfWeek'] = df_personal['datetime'].dt.day_name()
-    df_personal['Month'] = df_personal['datetime'].dt.to_period('M').astype(str)
-    df_personal['Week'] = df_personal['datetime'].dt.isocalendar().week
-    
-    return df_personal
+        # Conversion Date
+        df['datetime'] = pd.to_datetime(df['datetime'])
+        
+        # Enrichissement Temporel
+        df['Hour'] = df['datetime'].dt.hour
+        df['DayOfWeek'] = df['datetime'].dt.day_name()
+        df['Month'] = df['datetime'].dt.to_period('M').astype(str)
+        df['Week'] = df['datetime'].dt.isocalendar().week
+        df['Date_Only'] = df['datetime'].dt.date
+        
+        # Calcul du Boost d'Humeur (Différence Après - Avant)
+        df['Mood_Boost'] = df['mood_after'] - df['mood_before']
+        
+        return df
+    else:
+        # Fallback si le fichier n'est pas trouvé (pour éviter le crash)
+        st.error(f"⚠️ Fichier '{file_name}' introuvable. Veuillez lancer 'generate_data.py' d'abord.")
+        return pd.DataFrame()
 
 df = load_data()
 
-# --- 4. SIDEBAR AVANCÉE ---
+# --- 4. SIDEBAR (FILTRES) ---
 with st.sidebar:
-    st.image("https://cdn-icons-png.flaticon.com/512/924/924514.png", width=70)
-    st.markdown("## ⚙️ Settings")
-    st.markdown("---")
+    st.image("https://cdn-icons-png.flaticon.com/512/2935/2935413.png", width=80)
+    st.markdown("## ⚙️ Filtres")
     
-    # Filtres
     if not df.empty:
+        # Filtre Date
         min_d = df['datetime'].min().date()
         max_d = df['datetime'].max().date()
         date_range = st.date_input("📅 Période", value=(min_d, max_d), min_value=min_d, max_value=max_d)
         
-        types = list(df['Type'].astype(str).unique())
-        sel_types = st.multiselect("☕ Type de Café", types, default=types[:3] if len(types)>3 else types)
+        # Filtre Contexte Social
+        all_social = list(df['social_context'].unique())
+        sel_social = st.multiselect("👥 Contexte Social", all_social, default=all_social)
+        
+        # Filtre Lieu
+        all_loc = list(df['location'].unique())
+        sel_loc = st.multiselect("📍 Lieu", all_loc, default=all_loc)
         
         st.markdown("---")
-        st.markdown("### 🎯 Objectifs")
-        budget_goal = st.slider("Budget Mensuel ($)", 20, 300, 100)
-        caffeine_limit = st.number_input("Limite Caféine (mg/jour)", 100, 800, 400, step=50)
+        st.info("Ce dashboard analyse mes données personnelles générées pour comprendre l'impact de la caféine sur mon sommeil et mon humeur.")
 
-# Filtrage global
-mask = (df['datetime'].dt.date >= date_range[0]) & (df['datetime'].dt.date <= date_range[1]) & (df['Type'].isin(sel_types))
-df_filtered = df[mask]
+# Application des filtres
+if not df.empty:
+    mask = (
+        (df['datetime'].dt.date >= date_range[0]) & 
+        (df['datetime'].dt.date <= date_range[1]) &
+        (df['social_context'].isin(sel_social)) &
+        (df['location'].isin(sel_loc))
+    )
+    df_filtered = df[mask]
+else:
+    st.stop()
 
-# --- 5. MAIN DASHBOARD ---
+# --- 5. EN-TÊTE ---
 st.markdown("""
 <div class="header-box">
-    <h1 style="margin:0;">☕ My Quantified Self</h1>
-    <p style="font-size:16px; margin-top:5px; opacity:0.9;">
-        Analyse personnelle de ma consommation, de ma santé et de mon budget café.
+    <h1 style="margin:0;">☕ My Quantified Coffee Life</h1>
+    <p style="font-size:18px; margin-top:5px; opacity:0.9;">
+        Analyse holistique de ma consommation : Habitudes, Contexte et Impact Biologique.
     </p>
 </div>
 """, unsafe_allow_html=True)
 
 if df_filtered.empty:
-    st.error("Aucune donnée disponible. Ajustez les filtres.")
+    st.warning("Aucune donnée avec ces filtres.")
     st.stop()
 
-# --- NAVIGATION PAR ONGLETS ---
-tab_overview, tab_health, tab_finance, tab_advanced, tab_method = st.tabs([
-    "📊 Overview", "❤️ Santé & Habitudes", "💳 Finances", "🧠 Analyse Avancée", "📝 Méthodologie"
+# --- 6. ONGLETS PRINCIPAUX ---
+tab1, tab2, tab3, tab4 = st.tabs([
+    "📊 Vue d'Ensemble", 
+    "🧬 Style de Vie & Contexte", 
+    "💤 Impact & Santé", 
+    "📝 À propos du Projet"
 ])
 
 # --- TAB 1: OVERVIEW ---
-with tab_overview:
+with tab1:
     # KPIs
-    tot_cups = len(df_filtered)
-    tot_spent = df_filtered['Price'].sum()
-    avg_mood = df_filtered['Mood Score'].mean()
-    fav_coffee = df_filtered['Type'].mode()[0] if not df_filtered.empty else "N/A"
-    
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Total Tasses", f"{tot_cups}")
-    c2.metric("Dépense Totale", f"${tot_spent:,.0f}")
-    c3.metric("Humeur Moyenne", f"{avg_mood:.1f}/10")
-    c4.metric("Café Favori", f"{fav_coffee}")
+    c1.metric("Total Cafés", len(df_filtered), help="Nombre total de tasses")
+    c2.metric("Budget Total", f"${df_filtered['price'].sum():.0f}", help="Dépense cumulée")
+    c3.metric("Sommeil Moyen", f"{df_filtered['sleep_hours_next_night'].mean():.1f}h", help="Moyenne des nuits suivantes")
+    c4.metric("Boost Humeur", f"+{df_filtered['Mood_Boost'].mean():.1f} pts", help="Gain moyen d'humeur après café")
     
     st.markdown("---")
     
-    # Insight Automatique
-    if avg_mood > 7:
-        st.success(f"🌟 **Insight:** Votre humeur est excellente sur cette période ! Le {fav_coffee} semble vous réussir.")
-    else:
-        st.info(f"💡 **Insight:** Humeur modérée. Avez-vous pensé à réduire la caféine l'après-midi ?")
-
-    # Graphiques Principaux
-    c_left, c_right = st.columns([2, 1])
+    col_heat, col_pie = st.columns([2, 1])
     
-    with c_left:
-        st.subheader("🕰️ Habitudes (Heure vs Jour)")
+    with col_heat:
+        st.subheader("🕰️ Carte de Chaleur : Mes Habitudes")
+        st.caption("Quand est-ce que je bois le plus de café ?")
+        
+        # Heatmap (Jours vs Heures)
         hm_data = df_filtered.groupby(['DayOfWeek', 'Hour']).size().reset_index(name='Count')
         days_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
         
@@ -236,167 +192,176 @@ with tab_overview:
             category_orders={'DayOfWeek': days_order},
             color_continuous_scale='Oranges',
             template='simple_white',
-            labels={'Hour': 'Heure', 'DayOfWeek': 'Jour', 'Count': 'Tasses'}
+            labels={'Hour': 'Heure (0-24)', 'DayOfWeek': 'Jour', 'Count': 'Intensité'}
         )
         st.plotly_chart(fig_heat, use_container_width=True)
         
-    with c_right:
-        st.subheader("☕ Préférences")
-        fig_pie = px.pie(
-            df_filtered, values='Price', names='Type', 
-            hole=0.4, 
-            color_discrete_sequence=px.colors.sequential.RdBu,
+    with col_pie:
+        st.subheader("☕ Mes Préférences")
+        fig_pie = px.donut(
+            df_filtered, values='price', names='coffee_type',
+            hole=0.4,
+            color_discrete_sequence=px.colors.sequential.Brwnyl,
             template='simple_white'
         )
         fig_pie.update_traces(textposition='inside', textinfo='percent')
-        fig_pie.update_layout(showlegend=False)
+        fig_pie.update_layout(showlegend=False, margin=dict(t=20, b=20, l=20, r=20))
         st.plotly_chart(fig_pie, use_container_width=True)
 
-# --- TAB 2: SANTÉ ---
-with tab_health:
-    st.subheader("❤️ Suivi Caféine & Sommeil")
+# --- TAB 2: LIFESTYLE (NOUVEAU - Exploite les nouvelles colonnes) ---
+with tab2:
+    st.subheader("🌍 Contexte de consommation")
     
-    c1, c2 = st.columns(2)
+    col_sun, col_act = st.columns(2)
     
-    with c1:
-        daily_caf = df_filtered.groupby('Date_Str_Clean')['Caffeine_mg'].sum().reset_index()
-        fig_caf = go.Figure()
-        fig_caf.add_trace(go.Bar(x=daily_caf['Date_Str_Clean'], y=daily_caf['Caffeine_mg'], name='Ma Conso', marker_color='#6D4C41'))
-        fig_caf.add_trace(go.Scatter(
-            x=daily_caf['Date_Str_Clean'], y=[caffeine_limit]*len(daily_caf), 
-            mode='lines', name='Limite Santé', line=dict(color='red', dash='dash')
-        ))
-        fig_caf.update_layout(title="Caféine Quotidienne vs Limite", template="simple_white", yaxis_title="mg")
-        st.plotly_chart(fig_caf, use_container_width=True)
+    with col_sun:
+        st.markdown("**Où, avec qui et quoi ? (Hiérarchie)**")
+        # Sunburst Chart : Lieu -> Social -> Type
+        fig_sun = px.sunburst(
+            df_filtered, 
+            path=['location', 'social_context', 'coffee_type'], 
+            values='price',
+            color='location',
+            color_discrete_sequence=px.colors.qualitative.Antique
+        )
+        fig_sun.update_layout(height=450, margin=dict(t=10, b=10, l=10, r=10))
+        st.plotly_chart(fig_sun, use_container_width=True)
         
-    with c2:
+    with col_act:
+        st.markdown("**Que faisais-je en buvant ?**")
+        # Bar chart des activités
+        act_counts = df_filtered['activity'].value_counts().reset_index()
+        act_counts.columns = ['Activité', 'Nombre']
+        
+        fig_bar = px.bar(
+            act_counts, x='Nombre', y='Activité', orientation='h',
+            color='Nombre', color_continuous_scale='Brwnyl',
+            template='simple_white'
+        )
+        fig_bar.update_layout(height=450)
+        st.plotly_chart(fig_bar, use_container_width=True)
+
+# --- TAB 3: IMPACT (LA PARTIE SCIENTIFIQUE) ---
+with tab3:
+    st.subheader("🧪 Analyse d'Impact Biologique")
+    st.markdown("Cette section explore les corrélations entre mes habitudes (heure, caféine) et ma santé (sommeil, humeur).")
+    
+    col_sleep, col_mood = st.columns(2)
+    
+    with col_sleep:
+        st.markdown("#### 💤 La Caféine tue-t-elle mon sommeil ?")
+        # Scatter Plot : Heure vs Sommeil (avec taille = dose caféine)
         fig_sleep = px.scatter(
-            df_filtered, x='Hour', y='Sleep Quality',
-            size='Caffeine_mg', color='Type',
-            title="Caféine Tardive vs Qualité Sommeil",
+            df_filtered, 
+            x='Hour', 
+            y='sleep_hours_next_night',
+            size='caffeine_mg',
+            color='location', # Couleur par lieu pour voir si le café du bureau est coupable
+            color_discrete_sequence=px.colors.qualitative.Bold,
             template='simple_white',
-            labels={'Hour': 'Heure de consommation', 'Sleep Quality': 'Qualité Sommeil'}
+            labels={'Hour': 'Heure du Café', 'sleep_hours_next_night': 'Heures de Sommeil (Nuit Suivante)'},
+            title="Corrélation : Heure vs Sommeil"
         )
-        # CORRECTION DU BUG ICI : Suppression de 'opacity' et utilisation de 'rgba' pour la couleur
-        fig_sleep.add_shape(
-            type="line", 
-            x0=17, y0=9, x1=23, y1=5, 
-            line=dict(color="rgba(255, 0, 0, 0.5)", width=2, dash="dot")
-        )
+        # Zone de danger visuelle (Après 16h)
+        fig_sleep.add_vrect(x0=16, x1=24, fillcolor="red", opacity=0.1, annotation_text="Zone à Risque")
         st.plotly_chart(fig_sleep, use_container_width=True)
-
-# --- TAB 3: FINANCES ---
-with tab_finance:
-    st.subheader("💳 Analyse Budgétaire")
-    
-    col_f1, col_f2 = st.columns([1, 2])
-    
-    with col_f1:
-        current_month = df_filtered['Month'].max()
-        monthly_spend = df_filtered[df_filtered['Month'] == current_month]['Price'].sum()
         
-        fig_gauge = go.Figure(go.Indicator(
-            mode = "gauge+number+delta",
-            value = monthly_spend,
-            domain = {'x': [0, 1], 'y': [0, 1]},
-            title = {'text': f"Dépenses ce mois ({current_month})"},
-            delta = {'reference': budget_goal},
-            gauge = {
-                'axis': {'range': [None, max(budget_goal * 1.5, monthly_spend * 1.1)]},
-                'bar': {'color': "#4E342E"},
-                'threshold': {'line': {'color': "red", 'width': 4}, 'thickness': 0.75, 'value': budget_goal}
-            }
+    with col_mood:
+        st.markdown("#### 🙂 L'effet sur l'Humeur")
+        # Comparaison Humeur Avant vs Après par type de café
+        mood_data = df_filtered.groupby('coffee_type')[['mood_before', 'mood_after']].mean().reset_index()
+        # Transformation pour le graphique en haltère (dumbell plot) ou lignes
+        
+        fig_mood = go.Figure()
+        fig_mood.add_trace(go.Scatter(
+            x=mood_data['mood_before'], y=mood_data['coffee_type'],
+            mode='markers', name='Avant', marker=dict(color='gray', size=10)
         ))
-        st.plotly_chart(fig_gauge, use_container_width=True)
-        
-    with col_f2:
-        df_filtered = df_filtered.sort_values('datetime')
-        df_filtered['Cumul_Spend'] = df_filtered['Price'].cumsum()
-        
-        # Prédiction simple (Linéaire)
-        last_val = df_filtered['Cumul_Spend'].iloc[-1]
-        
-        fig_trend = px.area(
-            df_filtered, x='datetime', y='Cumul_Spend',
-            title="Dépense Cumulée",
-            color_discrete_sequence=['#8D6E63'],
-            template="simple_white"
+        fig_mood.add_trace(go.Scatter(
+            x=mood_data['mood_after'], y=mood_data['coffee_type'],
+            mode='markers', name='Après', marker=dict(color='orange', size=12)
+        ))
+        # Lignes connectrices
+        for i in range(len(mood_data)):
+            fig_mood.add_shape(
+                type="line",
+                x0=mood_data.iloc[i]['mood_before'], x1=mood_data.iloc[i]['mood_after'],
+                y0=mood_data.iloc[i]['coffee_type'], y1=mood_data.iloc[i]['coffee_type'],
+                line=dict(color="gray", width=1)
+            )
+            
+        fig_mood.update_layout(
+            title="Gain d'Humeur Moyen par Type",
+            xaxis_title="Score Humeur (1-10)",
+            template="simple_white",
+            height=400
         )
-        st.plotly_chart(fig_trend, use_container_width=True)
+        st.plotly_chart(fig_mood, use_container_width=True)
 
-# --- TAB 4: AVANCÉ ---
-with tab_advanced:
-    c_a1, c_a2 = st.columns(2)
+    # Radar Chart Global
+    st.markdown("---")
+    st.subheader("🕸️ Mon Profil de Consommateur")
     
-    with c_a1:
-        st.subheader("🕸️ Profil Multidimensionnel")
-        radar_data = df_filtered.groupby('Type').agg({
-            'Price': 'mean',
-            'Mood Score': 'mean',
-            'Sleep Quality': 'mean',
-            'Caffeine_mg': 'mean'
-        }).reset_index()
-        
-        # Normalisation 0-1
-        for col in ['Price', 'Mood Score', 'Sleep Quality', 'Caffeine_mg']:
-            max_val = radar_data[col].max()
-            if max_val > 0:
-                radar_data[col] = radar_data[col] / max_val
-            
-        categories = ['Prix', 'Humeur', 'Sommeil', 'Caféine']
-        fig_radar = go.Figure()
-        
-        # Top 3 types
-        top_types = df_filtered['Type'].value_counts().head(3).index.tolist()
-        
-        for t in top_types:
-            if t in radar_data['Type'].values:
-                d = radar_data[radar_data['Type'] == t].iloc[0]
-                values = [d['Price'], d['Mood Score'], d['Sleep Quality'], d['Caffeine_mg']]
-                fig_radar.add_trace(go.Scatterpolar(r=values, theta=categories, fill='toself', name=str(t)))
-            
-        fig_radar.update_layout(polar=dict(radialaxis=dict(visible=True)), showlegend=True, height=400)
-        st.plotly_chart(fig_radar, use_container_width=True)
+    # Agrégation par Contexte Social
+    radar_df = df_filtered.groupby('social_context').agg({
+        'price': 'mean',
+        'caffeine_mg': 'mean',
+        'mood_after': 'mean',
+        'sleep_hours_next_night': 'mean'
+    }).reset_index()
+    
+    # Normalisation (Min-Max) pour le radar
+    cols_to_norm = ['price', 'caffeine_mg', 'mood_after', 'sleep_hours_next_night']
+    for col in cols_to_norm:
+        radar_df[col] = (radar_df[col] - radar_df[col].min()) / (radar_df[col].max() - radar_df[col].min() + 0.01)
 
-    with c_a2:
-        st.subheader("📅 Calendrier d'Intensité")
-        cal_data = df_filtered.groupby(['Week', 'DayOfWeek']).size().reset_index(name='Count')
-        
-        fig_cal = px.density_heatmap(
-            cal_data, x='Week', y='DayOfWeek', z='Count',
-            category_orders={'DayOfWeek': days_order},
-            color_continuous_scale='Greens',
-            template='simple_white',
-            title="Intensité par Semaine"
-        )
-        st.plotly_chart(fig_cal, use_container_width=True)
+    categories = ['Coût', 'Caféine', 'Humeur', 'Sommeil']
+    fig_radar = go.Figure()
 
-# --- TAB 5: MÉTHODOLOGIE ---
-with tab_method:
+    for i, row in radar_df.iterrows():
+        fig_radar.add_trace(go.Scatterpolar(
+            r=[row['price'], row['caffeine_mg'], row['mood_after'], row['sleep_hours_next_night']],
+            theta=categories,
+            fill='toself',
+            name=row['social_context']
+        ))
+
+    fig_radar.update_layout(
+        polar=dict(radialaxis=dict(visible=True)), 
+        title="Impact selon le Contexte Social (Normalisé)",
+        height=500
+    )
+    st.plotly_chart(fig_radar, use_container_width=True)
+
+# --- TAB 4: EXPLIATIONS (CRITÈRE PROJET) ---
+with tab4:
     st.markdown("""
-    ### 📝 Méthodologie du Projet
+    ### 📝 À propos de ce Dashboard ("Quantified Self")
     
-    **1. Transformation des Données**
-    J'ai transformé un fichier brut de transactions pour l'adapter à un contexte personnel ("Quantified Self").
-    * **Nettoyage :** Standardisation des dates et des noms de colonnes.
-    * **Échantillonnage :** Sélection de 15% des données pour simuler une consommation humaine réaliste.
+    **1. Pourquoi ce sujet ?**
+    En tant qu'étudiant, je consomme beaucoup de café. J'ai voulu dépasser la simple question "Combien je dépense ?" pour comprendre **"Quel est l'impact sur ma biologie et ma vie sociale ?"**.
     
-    **2. Enrichissement (Augmentation)**
-    J'ai ajouté des variables synthétiques pour démontrer des capacités d'analyse avancées :
-    * **Humeur & Sommeil :** Générés aléatoirement pour explorer les corrélations bien-être.
-    * **Caféine :** Mappée selon le type de boisson.
+    **2. La Donnée (Data Source)**
+    Ce dashboard repose sur un jeu de données personnel (`my_coffee_life.csv`) généré pour simuler une année de ma vie.
+    Il contient des variables riches :
+    * **Contexte :** Lieu, Activité, Météo.
+    * **Biométrie (Simulée) :** Niveau de stress, Qualité du sommeil, Humeur.
     
-    **3. Design & Interactions**
-    * Utilisation de **Plotly** pour l'interactivité.
-    * Système d'onglets pour organiser l'histoire des données.
+    **3. Choix de Design & Encodage Visuel**
+    * **Heatmap (Tab 1) :** Choisie car les habitudes sont cycliques (Semaine vs Weekend). C'est le meilleur moyen de voir les "Hotspots" temporels.
+    * **Sunburst (Tab 2) :** Permet de voir la hiérarchie des habitudes (Lieu -> Social -> Type) en un seul coup d'œil.
+    * **Scatter Plot (Tab 3) :** Indispensable pour prouver la corrélation négative entre l'heure de consommation (Axe X) et la durée du sommeil (Axe Y). La "Zone Rouge" ajoutée après 16h renforce cette analyse.
+    
+    **4. Limitations**
+    * Les données de sommeil sont auto-déclarées (subjectives) dans ce modèle. L'utilisation d'une montre connectée rendrait l'analyse plus précise.
     """)
     
-    col_d1, col_d2 = st.columns([3, 1])
-    with col_d1:
-        st.dataframe(df_filtered)
-    with col_d2:
-        csv = df_filtered.to_csv(index=False).encode('utf-8')
-        st.download_button("📥 Télécharger CSV", data=csv, file_name='my_coffee_log.csv', mime='text/csv')
+    st.download_button(
+        label="📥 Télécharger les Données Brutes (CSV)",
+        data=df_filtered.to_csv(index=False).encode('utf-8'),
+        file_name='my_quantified_coffee_life.csv',
+        mime='text/csv'
+    )
 
 st.markdown("---")
-st.caption("Projet Visual Analytics | 2024")
+st.caption("Projet Visual Analytics 2024 | Développé avec Streamlit & Plotly")
