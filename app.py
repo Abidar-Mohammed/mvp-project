@@ -89,7 +89,7 @@ st.markdown("""
 def load_data():
     # ---------------------------------------------------------
     # 👇 REMPLACE CECI PAR TON LIEN GITHUB RAW SI BESOIN 👇
-    GITHUB_URL = "https://raw.githubusercontent.com/TON_USER/TON_REPO/main/NetflixHistory.csv"
+    GITHUB_URL = "https://github.com/Abidar-Mohammed/mvp-project/main/NetflixHistory.csv"
     LOCAL_FILE = "NetflixHistory.csv"
     # ---------------------------------------------------------
     
@@ -310,3 +310,4 @@ st.markdown("""
     NETFLIX PERSONAL ANALYTICS | 2024 PROJECT
 </div>
 """, unsafe_allow_html=True)
+
