@@ -208,38 +208,39 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# --- 6. METHODOLOGY BUTTON (TOGGLE) ---
+# --- 6. METHODOLOGY BUTTON (CORRECTED FORMATTING) ---
 col_info1, col_info2, col_info3 = st.columns([1, 2, 1])
 with col_info2:
     show_methodology = st.button("ℹ️ VIEW PROJECT METHODOLOGY & REPORT", use_container_width=True)
 
 if show_methodology:
     st.info("👇 ACADEMIC REPORT DISPLAYED BELOW")
+    # CORRECTION : Le HTML est collé à gauche pour éviter l'interprétation "Code Block"
     st.markdown("""
-    <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 10px; border: 1px solid #D4AF37;">
-        <h3 style="color: #D4AF37; margin-bottom: 20px;">PROJECT METHODOLOGY & DESIGN CHOICES</h3>
-        
-        <h4 style="color: #FFF;">1. Data & Motivations</h4>
-        <ul>
-            <li><strong>Data Source:</strong> Simulated dataset (<code>my_coffee_life.csv</code>) based on realistic physiological models to enable a "Quantified Self" analysis.</li>
-            <li><strong>Goal:</strong> Move beyond descriptive statistics (how many?) to explanatory analytics (why am I tired?).</li>
-        </ul>
+<div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 10px; border: 1px solid #D4AF37;">
+    <h3 style="color: #D4AF37; margin-bottom: 20px; font-family: 'Playfair Display', serif;">PROJECT METHODOLOGY & DESIGN CHOICES</h3>
+    
+    <h4 style="color: #FFF; font-weight:bold;">1. Data & Motivations</h4>
+    <ul style="color: #B0BEC5;">
+        <li><strong>Data Source:</strong> Simulated dataset (<code>my_coffee_life.csv</code>) based on realistic physiological models to enable a "Quantified Self" analysis.</li>
+        <li><strong>Goal:</strong> Move beyond descriptive statistics (how many?) to explanatory analytics (why am I tired?).</li>
+    </ul>
 
-        <h4 style="color: #FFF;">2. Structure & Layout</h4>
-        <ul>
-            <li><strong>Single-Page Layout:</strong> Chosen to create a seamless narrative flow ("Scrollytelling") rather than disjointed tabs. It guides the user from the general (Overview) to the specific (Biological Impact).</li>
-            <li><strong>Screenspace Use:</strong> High data-ink ratio. Charts are maximized, and text is kept concise. The 4-column KPI row provides an immediate "At a glance" summary.</li>
-        </ul>
+    <h4 style="color: #FFF; font-weight:bold;">2. Structure & Layout</h4>
+    <ul style="color: #B0BEC5;">
+        <li><strong>Single-Page Layout:</strong> Chosen to create a seamless narrative flow ("Scrollytelling") rather than disjointed tabs. It guides the user from the general (Overview) to the specific (Biological Impact).</li>
+        <li><strong>Screenspace Use:</strong> High data-ink ratio. Charts are maximized, and text is kept concise. The 4-column KPI row provides an immediate "At a glance" summary.</li>
+    </ul>
 
-        <h4 style="color: #FFF;">3. Visual Encodings & Justifications</h4>
-        <ul>
-            <li><strong>Heatmap (Overview):</strong> Selected because temporal habits are cyclical. It reveals density patterns (Monday morning vs. Weekend) better than a line chart.</li>
-            <li><strong>Sankey / Parallel Categories (Context):</strong> Chosen to visualize the <em>flow</em> and complex relationships between categorical variables (Social -> Location -> Product).</li>
-            <li><strong>Scatter Plot with Annotations (Biology):</strong> Used to show correlation. The added "Red Zone" (>4PM) is a pre-attentive attribute that draws the eye immediately to the insight regarding sleep disruption.</li>
-            <li><strong>Gold/Dark Theme:</strong> A dark background reduces eye strain (useful for data-heavy apps) and the Gold/Amber palette semantically links to the coffee theme while providing high contrast for accessibility.</li>
-        </ul>
-    </div>
-    """, unsafe_allow_html=True)
+    <h4 style="color: #FFF; font-weight:bold;">3. Visual Encodings & Justifications</h4>
+    <ul style="color: #B0BEC5;">
+        <li><strong>Heatmap (Overview):</strong> Selected because temporal habits are cyclical. It reveals density patterns (Monday morning vs. Weekend) better than a line chart.</li>
+        <li><strong>Sankey / Parallel Categories (Context):</strong> Chosen to visualize the <em>flow</em> and complex relationships between categorical variables (Social -> Location -> Product).</li>
+        <li><strong>Scatter Plot with Annotations (Biology):</strong> Used to show correlation. The added "Red Zone" (>4PM) is a pre-attentive attribute that draws the eye immediately to the insight regarding sleep disruption.</li>
+        <li><strong>Gold/Dark Theme:</strong> A dark background reduces eye strain (useful for data-heavy apps) and the Gold/Amber palette semantically links to the coffee theme while providing high contrast for accessibility.</li>
+    </ul>
+</div>
+""", unsafe_allow_html=True)
 
 
 # Common Plotly Layout for Dark Theme
