@@ -359,3 +359,35 @@ st.markdown("""
     VISUAL ANALYTICS PROJECT 2024 | DESIGNED WITH STREAMLIT & PLOTLY | SINGLE PAGE APPLICATION
 </div>
 """, unsafe_allow_html=True)
+
+
+
+
+# --- FOOTER & METHODOLOGY (REQUIRED FOR GRADING) ---
+st.markdown("---")
+with st.expander("ℹ️ PROJECT METHODOLOGY & DESIGN CHOICES (ACADEMIC REPORT)", expanded=False):
+    st.markdown("""
+    ### 1. Data & Motivations
+    * **Data Source:** Simulated dataset (`my_coffee_life.csv`) based on realistic physiological models to enable a "Quantified Self" analysis.
+    * **Goal:** Move beyond descriptive statistics (how many?) to explanatory analytics (why am I tired?).
+    
+    ### 2. Structure & Layout
+    * **Single-Page Layout:** Chosen to create a seamless narrative flow ("Scrollytelling") rather than disjointed tabs. It guides the user from the general (Overview) to the specific (Biological Impact).
+    * **Screenspace Use:** High data-ink ratio. Charts are maximized, and text is kept concise. The 4-column KPI row provides an immediate "At a glance" summary.
+    
+    ### 3. Visual Encodings & Justifications
+    * **Heatmap (Overview):** Selected because temporal habits are cyclical. It reveals density patterns (Monday morning vs. Weekend) better than a line chart.
+    * **Sankey / Parallel Categories (Context):** Chosen to visualize the *flow* and complex relationships between categorical variables (Social -> Location -> Product).
+    * **Scatter Plot with Annotations (Biology):** Used to show correlation. The added "Red Zone" (>4PM) is a pre-attentive attribute that draws the eye immediately to the insight regarding sleep disruption.
+    * **Gold/Dark Theme:** A dark background reduces eye strain (useful for data-heavy apps) and the Gold/Amber palette semantically links to the coffee theme while providing high contrast for accessibility.
+    
+    ### 4. Interaction Design
+    * **Filtering:** The Sidebar allows the user to drill down into specific timeframes or social contexts, making the static data dynamic.
+    * **Tooltips:** All Plotly charts are interactive, allowing detailed inspection of data points on hover.
+    """)
+
+st.markdown("""
+<div style="text-align: center; font-size: 0.8rem; color: #757575; margin-top: 50px;">
+    VISUAL ANALYTICS PROJECT 2024 | DESIGNED WITH STREAMLIT & PLOTLY
+</div>
+""", unsafe_allow_html=True)
