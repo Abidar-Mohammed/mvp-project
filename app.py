@@ -84,7 +84,7 @@ st.markdown("""
 @st.cache_data
 def load_data_from_github():
     # 👇👇👇 REMPLACE CECI PAR TON LIEN RAW GITHUB 👇👇👇
-    GITHUB_URL = "https://github.com/Abidar-Mohammed/mvp-project/main/NetflixHistory.csv"
+    GITHUB_URL = "https://raw.githubusercontent.com/Abidar-Mohammed/mvp-project/main/NetflixHistory.csv"
     # 👆👆👆 EXEMPLE: "https://raw.githubusercontent.com/MehdiData/ProjetNetflix/main/NetflixHistory.csv"
     
     try:
@@ -306,3 +306,4 @@ st.markdown("""
     PROJECT DATA SCIENCE 2024 • POWERED BY PYTHON & STREAMLIT
 </div>
 """, unsafe_allow_html=True)
+
