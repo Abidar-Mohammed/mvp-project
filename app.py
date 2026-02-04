@@ -5,40 +5,40 @@ import plotly.express as px
 import plotly.graph_objects as go
 import os
 
-# --- 1. CONFIG PAGE ---
+# --- 1. CONFIGURATION DE LA PAGE ---
 st.set_page_config(
-    page_title="Netflix Personal Analytics",
+    page_title="Netflix Unwrapped",
     page_icon="🍿",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# Gestion de l'état du bouton Méthodologie
+# --- 2. GESTION DE L'ÉTAT (BOUTON METHODO) ---
 if 'show_methodology' not in st.session_state:
     st.session_state.show_methodology = False
 
 def toggle_methodology():
     st.session_state.show_methodology = not st.session_state.show_methodology
 
-# --- 2. CSS NETFLIX DARK ---
+# --- 3. CSS NETFLIX DARK MODE ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@300;400;600&display=swap');
 
-    /* FOND NOIR */
+    /* FOND & COULEURS GLOBALES */
     .stApp {
         background-color: #141414;
         color: #E5E5E5;
     }
 
-    /* TITRES */
+    /* TITRES (Police Netflix-like) */
     h1, h2, h3 {
         font-family: 'Bebas Neue', sans-serif;
-        color: #E50914 !important; /* Rouge Netflix */
+        color: #E50914 !important; /* ROUGE NETFLIX */
         letter-spacing: 1.5px;
     }
     
-    p, div, label, li {
+    p, div, label, li, span {
         font-family: 'Montserrat', sans-serif;
         color: #B3B3B3;
     }
@@ -53,15 +53,15 @@ st.markdown("""
     }
     div[data-testid="metric-container"] label {
         color: #757575 !important;
-        font-size: 0.8rem;
+        font-size: 0.85rem;
     }
     div[data-testid="metric-container"] div[data-testid="stMetricValue"] {
         color: #FFF !important;
         font-family: 'Bebas Neue', sans-serif;
-        font-size: 2.5rem;
+        font-size: 3rem;
     }
 
-    /* BOUTON */
+    /* BOUTON STYLISÉ */
     div.stButton > button {
         background-color: transparent;
         border: 1px solid #E50914;
@@ -69,197 +69,229 @@ st.markdown("""
         font-family: 'Bebas Neue', sans-serif;
         font-size: 1.2rem;
         transition: 0.3s;
+        border-radius: 2px;
     }
     div.stButton > button:hover {
         background-color: #E50914;
         color: #FFF;
+        border-color: #E50914;
     }
-    
-    /* CHARTS */
+
+    /* GRAPHIQUES PLOTLY TRANSPARENTS */
     .stPlotlyChart {
         background-color: transparent !important;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# --- 3. CHARGEMENT ET TRAITEMENT ---
+# --- 4. CHARGEMENT ET INTELLIGENCE DES DONNÉES ---
 @st.cache_data
 def load_data():
-    file_name = "NetflixHistory.csv"
+    # ---------------------------------------------------------
+    # 👇 REMPLACE CECI PAR TON LIEN GITHUB RAW SI BESOIN 👇
+    GITHUB_URL = "https://raw.githubusercontent.com/TON_USER/TON_REPO/main/NetflixHistory.csv"
+    LOCAL_FILE = "NetflixHistory.csv"
+    # ---------------------------------------------------------
     
-    # Recherche robuste du fichier
-    path = None
-    possible_paths = [
-        file_name, 
-        os.path.join(os.path.dirname(os.path.abspath(__file__)), file_name)
-    ]
+    df = None
     
-    for p in possible_paths:
-        if os.path.exists(p):
-            path = p
-            break
-            
-    if not path:
-        st.error(f"⚠️ Fichier '{file_name}' introuvable. Lancez d'abord 'generate_data.py'.")
-        return pd.DataFrame()
-
-    df = pd.read_csv(path)
-    df['Date'] = pd.to_datetime(df['Date'], format="%d/%m/%Y")
-    
-    # FEATURE ENGINEERING (La "Magie" de l'analyse)
-    def parse_content(title):
-        # Mots clés indiquant une série
-        keywords = ['Saison', 'Season', 'Episode', 'Partie', 'Chapter']
-        is_show = any(k in title for k in keywords) or (":" in title and "Episode" in title)
+    # 1. Essai depuis GitHub
+    try:
+        df = pd.read_csv(GITHUB_URL)
+    except:
+        pass # Si ça rate, on tente le local
         
-        if is_show:
+    # 2. Essai Local
+    if df is None:
+        if os.path.exists(LOCAL_FILE):
+            df = pd.read_csv(LOCAL_FILE)
+        else:
+            # Création d'un dataframe vide pour éviter le crash
+            return pd.DataFrame()
+
+    # Conversion Date
+    df['Date'] = pd.to_datetime(df['Date'], format="%d/%m/%Y", errors='coerce')
+    
+    # --- FEATURE ENGINEERING (ANALYSE DES TITRES) ---
+    def parse_netflix_title(title):
+        if not isinstance(title, str): return pd.Series(["Unknown", "Unknown", 0])
+        
+        # Détection Séries vs Films basés sur les mots-clés
+        keywords = ['Saison', 'Season', 'Episode', 'Chapitre', 'Partie']
+        is_series = any(k in title for k in keywords) or (title.count(':') >= 2)
+        
+        if is_series:
             c_type = "TV Show"
-            # Extraction du nom de la série (avant le premier ":")
-            name = title.split(":")[0]
-            duration = 45 # Estimation 45min/épisode
+            # "Stranger Things: Saison 4: Épisode 1" -> "Stranger Things"
+            show_name = title.split(":")[0].strip()
+            duration = 50 # Estimation moyenne
         else:
             c_type = "Movie"
-            name = title
-            duration = 105 # Estimation 1h45/film
+            show_name = title
+            duration = 105 # Estimation moyenne film
             
-        return pd.Series([c_type, name, duration])
+        return pd.Series([c_type, show_name, duration])
 
-    df[['Type', 'Show_Name', 'Duration_Mins']] = df['Title'].apply(parse_content)
+    df[['Type', 'Show_Name', 'Duration_Mins']] = df['Title'].apply(parse_netflix_title)
     
     # Enrichissement Temporel
     df['Month'] = df['Date'].dt.to_period('M').astype(str)
     df['DayOfWeek'] = df['Date'].dt.day_name()
-    df['WeekEnd'] = df['Date'].dt.weekday >= 5
+    df['Year'] = df['Date'].dt.year
     
     return df
 
 df = load_data()
 
-# --- 4. SIDEBAR ---
+# --- 5. SIDEBAR (FILTRES) ---
 with st.sidebar:
     st.markdown("### 🍿 FILTERS")
+    
     if not df.empty:
+        # Filtre Date
         min_d = df['Date'].min().date()
         max_d = df['Date'].max().date()
         date_range = st.date_input("Period", value=(min_d, max_d), min_value=min_d, max_value=max_d)
         
-        show_filter = st.multiselect("Select Series", df[df['Type']=='TV Show']['Show_Name'].unique())
-
+        # Filtre Série
+        all_shows = sorted(df[df['Type'] == 'TV Show']['Show_Name'].unique())
+        selected_shows = st.multiselect("Filter by Series", all_shows)
+    
     st.markdown("---")
-    st.info("Quantified Self Project | Netflix Data")
+    st.caption("Visual Analytics Project 2024")
 
-if df.empty:
+# Application des filtres
+if not df.empty:
+    mask = (df['Date'].dt.date >= date_range[0]) & (df['Date'].dt.date <= date_range[1])
+    if selected_shows:
+        mask = mask & (df['Show_Name'].isin(selected_shows))
+    df_filtered = df[mask]
+else:
+    st.error("Data not found. Please check your CSV file or GitHub URL.")
     st.stop()
 
-# Filtrage
-mask = (df['Date'].dt.date >= date_range[0]) & (df['Date'].dt.date <= date_range[1])
-if show_filter:
-    mask = mask & (df['Show_Name'].isin(show_filter))
-df_filtered = df[mask]
-
-# --- 5. HEADER ---
+# --- 6. HEADER PRINCIPAL ---
 st.markdown("""
-<div style="text-align: center; margin-bottom: 40px;">
-    <h1 style="font-size: 4rem; margin: 0;">NETFLIX UNWRAPPED</h1>
-    <p style="text-transform: uppercase; letter-spacing: 2px;">My Streaming History Analysis</p>
+<div style="text-align: center; margin-bottom: 30px;">
+    <h1 style="font-size: 5rem; margin-bottom: 0;">NETFLIX UNWRAPPED</h1>
+    <p style="text-transform: uppercase; letter-spacing: 3px; font-size: 1.2rem;">My Personal Streaming History Analysis</p>
 </div>
 """, unsafe_allow_html=True)
 
-# --- 6. METHODOLOGY BUTTON ---
-col_info1, col_info2, col_info3 = st.columns([1, 2, 1])
-btn_text = "✕ CLOSE REPORT" if st.session_state.show_methodology else "ℹ️ VIEW PROJECT REPORT"
+# --- 7. BOUTON METHODOLOGIE (CORRIGÉ) ---
+col_m1, col_m2, col_m3 = st.columns([1, 2, 1])
+btn_text = "✕ CLOSE REPORT" if st.session_state.show_methodology else "ℹ️ VIEW PROJECT METHODOLOGY"
 
-with col_info2:
+with col_m2:
     st.button(btn_text, on_click=toggle_methodology, use_container_width=True)
 
 if st.session_state.show_methodology:
+    # Utilisation de HTML pur sans indentation pour éviter les blocs de code
     st.markdown("""
-    <div style="background: #222; padding: 25px; border-radius: 10px; border: 1px solid #444; margin-bottom: 30px;">
-        <h3 style="color: #E50914; text-align: center;">PROJECT METHODOLOGY</h3>
-        
-        <h4 style="color: #FFF;">1. Data Collection</h4>
-        <ul style="color: #CCC;">
-            <li><strong>Source:</strong> Personal Netflix Data Export (<code>NetflixHistory.csv</code>).</li>
-            <li><strong>Constraint:</strong> The raw file only contains <em>Title</em> and <em>Date</em>. No duration, no genre.</li>
-        </ul>
+<div style="background: #181818; padding: 30px; border-radius: 10px; border: 1px solid #333; margin-bottom: 40px;">
+<h3 style="color: #E50914; text-align: center; font-family: 'Bebas Neue'; letter-spacing: 1px;">PROJECT METHODOLOGY</h3>
+<h4 style="color: #FFF; margin-bottom: 5px;">1. Data Collection & Ethics</h4>
+<ul style="color: #B3B3B3; font-family: 'Montserrat'; font-size: 0.9rem; line-height: 1.6;">
+<li><strong>Source:</strong> Personal Netflix Viewing Activity (<code>NetflixHistory.csv</code>).</li>
+<li><strong>Privacy:</strong> Data was anonymized. Only titles and dates are used. No location or IP data.</li>
+</ul>
+<br>
+<h4 style="color: #FFF; margin-bottom: 5px;">2. Data Engineering</h4>
+<ul style="color: #B3B3B3; font-family: 'Montserrat'; font-size: 0.9rem; line-height: 1.6;">
+<li><strong>Parsing Logic:</strong> Developed a Python algorithm to distinguish Movies from TV Shows by detecting keywords like "Season" or "Episode" in the raw title strings.</li>
+<li><strong>Imputation:</strong> Since Netflix doesn't provide watch duration in the export, I estimated time based on content type (TV Show ≈ 50min, Movie ≈ 105min) to compute "Time Lost".</li>
+</ul>
+<br>
+<h4 style="color: #FFF; margin-bottom: 5px;">3. Visual Encodings</h4>
+<ul style="color: #B3B3B3; font-family: 'Montserrat'; font-size: 0.9rem; line-height: 1.6;">
+<li><strong>Color Strategy:</strong> Used the official Netflix Brand Palette (Red #E50914 on Black #141414) for thematic immersion.</li>
+<li><strong>Heatmap:</strong> Used to reveal "Binge-Watching" patterns (high density on weekends vs weekdays).</li>
+</ul>
+</div>
+""", unsafe_allow_html=True)
 
-        <h4 style="color: #FFF;">2. Data Engineering (Python)</h4>
-        <ul style="color: #CCC;">
-            <li><strong>Parsing:</strong> I developed a script to parse strings like <em>"Stranger Things: Season 4: Episode 1"</em> to extract the Series Name ("Stranger Things") and the Type ("TV Show").</li>
-            <li><strong>Estimation:</strong> Total watch time is estimated based on industry averages (45min/episode, 105min/movie).</li>
-        </ul>
-
-        <h4 style="color: #FFF;">3. Visual Design</h4>
-        <ul style="color: #CCC;">
-            <li><strong>Palette:</strong> Used the Netflix Brand Colors (#E50914 Red, #141414 Black) for immersion.</li>
-            <li><strong>Insights:</strong> Focused on <em>Binge-Watching</em> patterns and <em>Time Consumption</em>.</li>
-        </ul>
-    </div>
-    """, unsafe_allow_html=True)
-
-# Layout Plotly
-netflix_layout = dict(
-    paper_bgcolor='rgba(0,0,0,0)',
-    plot_bgcolor='rgba(0,0,0,0)',
-    font=dict(color='#AAA', family="Montserrat"),
-    margin=dict(t=30, l=10, r=10, b=10),
-    colorway=['#E50914', '#F5F5F1', '#564d4d']
-)
-
-# --- 7. KPIS ---
-total_hours = int(df_filtered['Duration_Mins'].sum() / 60)
-items_count = len(df_filtered)
-top_show = df_filtered[df_filtered['Type'] == 'TV Show']['Show_Name'].mode()[0] if not df_filtered[df_filtered['Type'] == 'TV Show'].empty else "N/A"
-binge_days = df_filtered[df_filtered['Date'].duplicated(keep=False)]['Date'].nunique()
+# --- 8. KPIs (INDICATEURS CLÉS) ---
+total_mins = df_filtered['Duration_Mins'].sum()
+total_hours = int(total_mins / 60)
+nb_items = len(df_filtered)
+# Série la plus regardée
+top_show_name = "None"
+if not df_filtered[df_filtered['Type']=='TV Show'].empty:
+    top_show_name = df_filtered[df_filtered['Type']=='TV Show']['Show_Name'].mode()[0]
 
 st.markdown("##### ❖ OVERVIEW")
-c1, c2, c3, c4 = st.columns(4)
-c1.metric("TOTAL WATCHED", f"{items_count}", "Items")
-c2.metric("TIME LOST", f"{total_hours}h", "Estimated")
-c3.metric("OBSESSION", top_show, "Most Watched")
-c4.metric("BINGE DAYS", binge_days, "Multiple Eps/Day")
+k1, k2, k3, k4 = st.columns(4)
+k1.metric("ITEMS WATCHED", nb_items)
+k2.metric("HOURS STREAMED", f"{total_hours}h")
+k3.metric("TOP OBSESSION", top_show_name)
+k4.metric("DATA RANGE", f"{len(df_filtered['Date'].unique())} Days")
 
-# --- 8. CHARTS ---
 st.markdown("---")
 
+# Layout Plotly Netflix
+netflix_theme = dict(
+    paper_bgcolor='rgba(0,0,0,0)',
+    plot_bgcolor='rgba(0,0,0,0)',
+    font=dict(color='#B3B3B3', family="Montserrat"),
+    margin=dict(t=40, l=10, r=10, b=10),
+    colorway=['#E50914', '#B20710', '#FFFFFF', '#555555']
+)
+
+# --- 9. ANALYSE TEMPORELLE (HEATMAP) ---
 col1, col2 = st.columns([2, 1])
 
 with col1:
-    st.markdown("##### ❖ WATCHING HABITS (Heatmap)")
+    st.markdown("##### ❖ WHEN DO I WATCH? (Heatmap)")
     hm_data = df_filtered.groupby(['DayOfWeek', 'Month']).size().reset_index(name='Count')
     days_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
     
     fig_heat = px.density_heatmap(
         hm_data, x='Month', y='DayOfWeek', z='Count',
         category_orders={'DayOfWeek': days_order},
-        color_continuous_scale=['#141414', '#B20710', '#E50914'],
-        title=""
+        color_continuous_scale=['#101010', '#800000', '#E50914'],
+        title="Streaming Intensity"
     )
-    fig_heat.update_layout(**netflix_layout)
+    fig_heat.update_layout(**netflix_theme)
+    fig_heat.update_coloraxes(colorbar_bgcolor="rgba(0,0,0,0)", colorbar_title="")
     st.plotly_chart(fig_heat, use_container_width=True)
 
 with col2:
-    st.markdown("##### ❖ CONTENT TYPE")
+    st.markdown("##### ❖ MOVIES VS SERIES")
     type_counts = df_filtered['Type'].value_counts().reset_index()
     type_counts.columns = ['Type', 'Count']
     
     fig_pie = px.pie(
         type_counts, values='Count', names='Type',
         hole=0.6,
-        color_discrete_sequence=['#E50914', '#333333']
+        color_discrete_sequence=['#E50914', '#333']
     )
     fig_pie.update_traces(textposition='outside', textinfo='percent+label')
-    fig_pie.update_layout(showlegend=False, **netflix_layout)
+    fig_pie.update_layout(showlegend=False, **netflix_theme)
     st.plotly_chart(fig_pie, use_container_width=True)
 
-# --- BINGE ANALYSIS ---
+# --- 10. BINGE WATCHING & TOP SERIES ---
 st.markdown("---")
-st.markdown("##### ❖ BINGE-WATCHING ANALYSIS")
+col3, col4 = st.columns(2)
 
-col_b1, col_b2 = st.columns(2)
+with col3:
+    st.markdown("##### ❖ TOP 10 SERIES (Volume)")
+    # Filtrer uniquement les séries
+    tv_data = df_filtered[df_filtered['Type'] == 'TV Show']
+    top_series = tv_data['Show_Name'].value_counts().head(10).reset_index()
+    top_series.columns = ['Series', 'Episodes']
+    
+    fig_bar = px.bar(
+        top_series, x='Episodes', y='Series',
+        orientation='h',
+        color='Episodes',
+        color_continuous_scale=['#333', '#E50914']
+    )
+    fig_bar.update_layout(yaxis=dict(autorange="reversed"), **netflix_theme)
+    st.plotly_chart(fig_bar, use_container_width=True)
 
-with col_b1:
-    st.markdown("**Cumulative Time Spent (The 'Slope' of Addiction)**")
+with col4:
+    st.markdown("##### ❖ ADDICTION CURVE (Cumulative Hours)")
+    # Tri par date pour le cumul
     df_sorted = df_filtered.sort_values('Date')
     df_sorted['Cumul_Hours'] = df_sorted['Duration_Mins'].cumsum() / 60
     
@@ -268,27 +300,13 @@ with col_b1:
         color_discrete_sequence=['#E50914']
     )
     fig_area.update_traces(fillcolor='rgba(229, 9, 20, 0.2)')
-    fig_area.update_layout(yaxis_title="Hours", **netflix_layout)
+    fig_area.update_layout(yaxis_title="Total Hours", **netflix_theme)
     st.plotly_chart(fig_area, use_container_width=True)
-
-with col_b2:
-    st.markdown("**Top 10 Series (Volume)**")
-    top_shows = df_filtered[df_filtered['Type'] == 'TV Show']['Show_Name'].value_counts().head(10).reset_index()
-    top_shows.columns = ['Series', 'Episodes']
-    
-    fig_bar = px.bar(
-        top_shows, x='Episodes', y='Series',
-        orientation='h',
-        color='Episodes',
-        color_continuous_scale=['#333', '#E50914']
-    )
-    fig_bar.update_layout(**netflix_layout, yaxis=dict(autorange="reversed"))
-    st.plotly_chart(fig_bar, use_container_width=True)
 
 # --- FOOTER ---
 st.markdown("---")
 st.markdown("""
-<div style="text-align: center; color: #555; font-size: 0.8rem; margin-top: 50px;">
-    NETFLIX PERSONAL ANALYTICS | PROJECT 2024
+<div style="text-align: center; color: #555; font-size: 0.8rem; margin-top: 30px;">
+    NETFLIX PERSONAL ANALYTICS | 2024 PROJECT
 </div>
 """, unsafe_allow_html=True)
