@@ -55,7 +55,7 @@ st.markdown("""
     /* TITLES */
     .main-title {
         text-align: center;
-        margin-bottom: 60px;
+        margin-bottom: 20px;
         border-bottom: 1px solid rgba(212, 175, 55, 0.3);
         padding-bottom: 40px;
     }
@@ -86,6 +86,16 @@ st.markdown("""
         background: linear-gradient(90deg, rgba(212, 175, 55, 0.1), transparent);
         padding-top: 10px;
         padding-bottom: 10px;
+    }
+    
+    .section-separator {
+        border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+        margin-top: 60px;
+        margin-bottom: 30px;
+        padding-bottom: 10px;
+        font-size: 1.5rem;
+        color: #F9F9F9;
+        font-family: 'Playfair Display', serif;
     }
 
     /* KPI CARDS */
@@ -159,6 +169,11 @@ def load_data():
     df['Mood_Boost'] = df['mood_after'] - df['mood_before']
     df['Cumul_Spend'] = df['price'].cumsum()
     
+    # Safety Check for columns
+    cols = ['weather', 'social_context', 'location', 'activity', 'stress_level', 'pleasure_score']
+    for c in cols:
+        if c not in df.columns: df[c] = "Unknown" if c in ['weather', 'social_context', 'location'] else 0
+
     return df
 
 df = load_data()
@@ -192,6 +207,40 @@ st.markdown("""
     <p>A Personal Data Story: Habits, Context & Biological Impact</p>
 </div>
 """, unsafe_allow_html=True)
+
+# --- 6. METHODOLOGY BUTTON (TOGGLE) ---
+col_info1, col_info2, col_info3 = st.columns([1, 2, 1])
+with col_info2:
+    show_methodology = st.button("ℹ️ VIEW PROJECT METHODOLOGY & REPORT", use_container_width=True)
+
+if show_methodology:
+    st.info("👇 ACADEMIC REPORT DISPLAYED BELOW")
+    st.markdown("""
+    <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 10px; border: 1px solid #D4AF37;">
+        <h3 style="color: #D4AF37; margin-bottom: 20px;">PROJECT METHODOLOGY & DESIGN CHOICES</h3>
+        
+        <h4 style="color: #FFF;">1. Data & Motivations</h4>
+        <ul>
+            <li><strong>Data Source:</strong> Simulated dataset (<code>my_coffee_life.csv</code>) based on realistic physiological models to enable a "Quantified Self" analysis.</li>
+            <li><strong>Goal:</strong> Move beyond descriptive statistics (how many?) to explanatory analytics (why am I tired?).</li>
+        </ul>
+
+        <h4 style="color: #FFF;">2. Structure & Layout</h4>
+        <ul>
+            <li><strong>Single-Page Layout:</strong> Chosen to create a seamless narrative flow ("Scrollytelling") rather than disjointed tabs. It guides the user from the general (Overview) to the specific (Biological Impact).</li>
+            <li><strong>Screenspace Use:</strong> High data-ink ratio. Charts are maximized, and text is kept concise. The 4-column KPI row provides an immediate "At a glance" summary.</li>
+        </ul>
+
+        <h4 style="color: #FFF;">3. Visual Encodings & Justifications</h4>
+        <ul>
+            <li><strong>Heatmap (Overview):</strong> Selected because temporal habits are cyclical. It reveals density patterns (Monday morning vs. Weekend) better than a line chart.</li>
+            <li><strong>Sankey / Parallel Categories (Context):</strong> Chosen to visualize the <em>flow</em> and complex relationships between categorical variables (Social -> Location -> Product).</li>
+            <li><strong>Scatter Plot with Annotations (Biology):</strong> Used to show correlation. The added "Red Zone" (>4PM) is a pre-attentive attribute that draws the eye immediately to the insight regarding sleep disruption.</li>
+            <li><strong>Gold/Dark Theme:</strong> A dark background reduces eye strain (useful for data-heavy apps) and the Gold/Amber palette semantically links to the coffee theme while providing high contrast for accessibility.</li>
+        </ul>
+    </div>
+    """, unsafe_allow_html=True)
+
 
 # Common Plotly Layout for Dark Theme
 dark_layout = dict(
@@ -357,37 +406,5 @@ st.markdown("---")
 st.markdown("""
 <div style="text-align: center; font-size: 0.8rem; color: #757575; margin-top: 50px;">
     VISUAL ANALYTICS PROJECT 2024 | DESIGNED WITH STREAMLIT & PLOTLY | SINGLE PAGE APPLICATION
-</div>
-""", unsafe_allow_html=True)
-
-
-
-
-# --- FOOTER & METHODOLOGY (REQUIRED FOR GRADING) ---
-st.markdown("---")
-with st.expander("ℹ️ PROJECT METHODOLOGY & DESIGN CHOICES (ACADEMIC REPORT)", expanded=False):
-    st.markdown("""
-    ### 1. Data & Motivations
-    * **Data Source:** Simulated dataset (`my_coffee_life.csv`) based on realistic physiological models to enable a "Quantified Self" analysis.
-    * **Goal:** Move beyond descriptive statistics (how many?) to explanatory analytics (why am I tired?).
-    
-    ### 2. Structure & Layout
-    * **Single-Page Layout:** Chosen to create a seamless narrative flow ("Scrollytelling") rather than disjointed tabs. It guides the user from the general (Overview) to the specific (Biological Impact).
-    * **Screenspace Use:** High data-ink ratio. Charts are maximized, and text is kept concise. The 4-column KPI row provides an immediate "At a glance" summary.
-    
-    ### 3. Visual Encodings & Justifications
-    * **Heatmap (Overview):** Selected because temporal habits are cyclical. It reveals density patterns (Monday morning vs. Weekend) better than a line chart.
-    * **Sankey / Parallel Categories (Context):** Chosen to visualize the *flow* and complex relationships between categorical variables (Social -> Location -> Product).
-    * **Scatter Plot with Annotations (Biology):** Used to show correlation. The added "Red Zone" (>4PM) is a pre-attentive attribute that draws the eye immediately to the insight regarding sleep disruption.
-    * **Gold/Dark Theme:** A dark background reduces eye strain (useful for data-heavy apps) and the Gold/Amber palette semantically links to the coffee theme while providing high contrast for accessibility.
-    
-    ### 4. Interaction Design
-    * **Filtering:** The Sidebar allows the user to drill down into specific timeframes or social contexts, making the static data dynamic.
-    * **Tooltips:** All Plotly charts are interactive, allowing detailed inspection of data points on hover.
-    """)
-
-st.markdown("""
-<div style="text-align: center; font-size: 0.8rem; color: #757575; margin-top: 50px;">
-    VISUAL ANALYTICS PROJECT 2024 | DESIGNED WITH STREAMLIT & PLOTLY
 </div>
 """, unsafe_allow_html=True)
