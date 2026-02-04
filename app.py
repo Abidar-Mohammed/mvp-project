@@ -5,13 +5,22 @@ import plotly.express as px
 import plotly.graph_objects as go
 import os
 
-# --- 1. PAGE CONFIGURATION ---
+# --- 1. CONFIGURATION DE LA PAGE & ETAT (SESSION STATE) ---
 st.set_page_config(
     page_title="The Quantified Coffee",
     page_icon="❖",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
+
+# Initialisation de la mémoire (État du bouton Méthodologie)
+# On le place ici pour être sûr qu'il est chargé avant tout le reste
+if 'show_methodology' not in st.session_state:
+    st.session_state.show_methodology = False
+
+def toggle_methodology():
+    """Fonction qui inverse l'état (Vrai/Faux) à chaque clic"""
+    st.session_state.show_methodology = not st.session_state.show_methodology
 
 # --- 2. ULTIMATE CSS (Dark Luxury Theme) ---
 st.markdown("""
@@ -131,6 +140,10 @@ st.markdown("""
         color: #D4AF37;
         background-color: rgba(212, 175, 55, 0.05);
     }
+    div.stButton > button:focus {
+        border-color: #D4AF37;
+        color: #D4AF37;
+    }
 
     /* CHARTS */
     .stPlotlyChart {
@@ -213,22 +226,18 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# --- 6. METHODOLOGY BUTTON (TOGGLE LOGIC) ---
+# --- 6. METHODOLOGY BUTTON (FIXED TOGGLE) ---
 col_info1, col_info2, col_info3 = st.columns([1, 2, 1])
 
-if 'show_methodology' not in st.session_state:
-    st.session_state.show_methodology = False
-
-def toggle_methodology():
-    st.session_state.show_methodology = not st.session_state.show_methodology
+# Définition du texte du bouton en fonction de l'état actuel
+btn_text = "✕ CLOSE REPORT" if st.session_state.show_methodology else "❖ VIEW PROJECT METHODOLOGY"
 
 with col_info2:
-    # Symboles Noir & Blanc sobres
-    btn_label = "✕ CLOSE REPORT" if st.session_state.show_methodology else "❖ VIEW PROJECT METHODOLOGY"
-    st.button(btn_label, on_click=toggle_methodology, use_container_width=True)
+    # Le bouton appelle la fonction toggle_methodology à chaque clic
+    st.button(btn_text, on_click=toggle_methodology, use_container_width=True)
 
+# Affichage conditionnel
 if st.session_state.show_methodology:
-    # HTML SANS INDENTATION pour éviter les blocs de code
     st.markdown("""
 <div style="background: rgba(30, 30, 30, 0.8); padding: 30px; border-radius: 10px; border: 1px solid #444; margin-bottom: 40px;">
 <h3 style="color: #D4AF37; text-align: center; margin-bottom: 20px; font-family: 'Playfair Display', serif;">PROJECT METHODOLOGY & DESIGN CHOICES</h3>
@@ -407,9 +416,9 @@ with col_b2:
     fig_dumbell.update_layout(title="", xaxis_title="Mood Score (1-10)", **dark_layout)
     st.plotly_chart(fig_dumbell, use_container_width=True)
 
-# --- 05. MULTIDIMENSIONAL PROFILE ---
+# --- 05. LOCATION PROFILING (Radar) ---
 st.markdown('<div class="section-separator"></div>', unsafe_allow_html=True)
-st.markdown("##### ❖ LOCATION PROFILING (Radar)")
+st.markdown("##### ❖ LOCATION PROFILING")
 
 cols_radar = ['price', 'caffeine_mg', 'mood_after', 'sleep_hours_next_night']
 radar_df = df_filtered.groupby('location')[cols_radar].mean().reset_index()
