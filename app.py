@@ -7,8 +7,8 @@ import os
 
 # --- 1. PAGE CONFIGURATION ---
 st.set_page_config(
-    page_title="The Quantified Coffee | Ultimate",
-    page_icon="☕",
+    page_title="The Quantified Coffee",
+    page_icon="❖",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
@@ -28,15 +28,15 @@ st.markdown("""
 
     /* GLASSMORPHISM CONTAINER */
     .main .block-container {
-        background: rgba(20, 20, 20, 0.85);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 20px;
+        background: rgba(18, 18, 18, 0.90);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 15px;
         padding: 3rem 4rem;
         max-width: 1200px !important;
         margin: 0 auto;
-        box-shadow: 0 0 50px rgba(0,0,0,0.8);
+        box-shadow: 0 0 60px rgba(0,0,0,0.9);
     }
 
     /* TYPOGRAPHY */
@@ -44,7 +44,7 @@ st.markdown("""
         font-family: 'Playfair Display', serif;
         color: #D4AF37 !important; /* Metallic Gold */
         text-transform: uppercase;
-        letter-spacing: 1.5px;
+        letter-spacing: 1px;
     }
     
     p, label, span, div, li {
@@ -56,7 +56,7 @@ st.markdown("""
     .main-title {
         text-align: center;
         margin-bottom: 20px;
-        border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+        border-bottom: 1px solid rgba(212, 175, 55, 0.2);
         padding-bottom: 40px;
     }
     .main-title h1 {
@@ -67,59 +67,69 @@ st.markdown("""
         margin: 0;
     }
     .main-title p {
-        font-size: 1.1rem;
+        font-size: 1rem;
         letter-spacing: 4px;
         text-transform: uppercase;
-        color: #757575 !important;
+        color: #616161 !important;
         margin-top: 10px;
     }
 
     /* SECTIONS */
     .section-header {
-        border-left: 4px solid #D4AF37;
+        border-left: 3px solid #D4AF37;
         padding-left: 20px;
         margin-top: 80px;
         margin-bottom: 30px;
-        font-size: 2rem;
+        font-size: 1.8rem;
         color: #F5F5F5;
         font-family: 'Playfair Display', serif;
-        background: linear-gradient(90deg, rgba(212, 175, 55, 0.1), transparent);
+        background: linear-gradient(90deg, rgba(212, 175, 55, 0.08), transparent);
         padding-top: 10px;
         padding-bottom: 10px;
     }
     
     .section-separator {
-        border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         margin-top: 60px;
         margin-bottom: 30px;
-        padding-bottom: 10px;
-        font-size: 1.5rem;
-        color: #F9F9F9;
-        font-family: 'Playfair Display', serif;
     }
 
     /* KPI CARDS */
     div[data-testid="metric-container"] {
-        background: rgba(255, 255, 255, 0.03);
+        background: rgba(255, 255, 255, 0.02);
         border: 1px solid rgba(255, 255, 255, 0.05);
-        border-radius: 0px;
+        border-radius: 4px;
         padding: 20px;
         text-align: center;
-        transition: transform 0.3s ease;
+        transition: transform 0.2s ease;
     }
     div[data-testid="metric-container"]:hover {
-        transform: translateY(-5px);
+        transform: translateY(-3px);
         border-color: #D4AF37;
     }
     div[data-testid="metric-container"] label {
-        color: #90A4AE !important;
-        font-size: 0.85rem;
+        color: #78909C !important;
+        font-size: 0.8rem;
         letter-spacing: 1px;
     }
     div[data-testid="metric-container"] div[data-testid="stMetricValue"] {
         color: #FFF8E1 !important;
         font-family: 'Playfair Display', serif;
         font-size: 2.2rem;
+    }
+
+    /* BUTTON STYLING */
+    div.stButton > button {
+        background-color: transparent;
+        border: 1px solid #555;
+        color: #AAA;
+        border-radius: 5px;
+        transition: all 0.3s;
+    }
+    div.stButton > button:hover {
+        border-color: #D4AF37;
+        color: #D4AF37;
+        background-color: rgba(212, 175, 55, 0.05);
     }
 
     /* CHARTS */
@@ -133,8 +143,6 @@ st.markdown("""
 @st.cache_data
 def load_data():
     file_name = "my_coffee_life.csv"
-    
-    # Robust file finding
     path = None
     possible_paths = [file_name, os.path.join(os.path.dirname(__file__), file_name)]
     
@@ -144,7 +152,6 @@ def load_data():
             break
             
     if not path:
-        # Fallback Generator (if csv is missing)
         dates = pd.date_range(start="2024-01-01", periods=200)
         df = pd.DataFrame({
             'datetime': dates,
@@ -162,14 +169,12 @@ def load_data():
         df = pd.read_csv(path)
         df['datetime'] = pd.to_datetime(df['datetime'])
 
-    # Feature Engineering
     df['Hour'] = df['datetime'].dt.hour
     df['DayOfWeek'] = df['datetime'].dt.day_name()
     df['Date_Only'] = df['datetime'].dt.date
     df['Mood_Boost'] = df['mood_after'] - df['mood_before']
     df['Cumul_Spend'] = df['price'].cumsum()
     
-    # Safety Check for columns
     cols = ['weather', 'social_context', 'location', 'activity', 'stress_level', 'pleasure_score']
     for c in cols:
         if c not in df.columns: df[c] = "Unknown" if c in ['weather', 'social_context', 'location'] else 0
@@ -180,7 +185,7 @@ df = load_data()
 
 # --- 4. SIDEBAR ---
 with st.sidebar:
-    st.markdown("### ◆ SETTINGS")
+    st.markdown("### ❖ SETTINGS")
     if not df.empty:
         min_d = df['datetime'].min().date()
         max_d = df['datetime'].max().date()
@@ -208,36 +213,42 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# --- 6. METHODOLOGY BUTTON (FIXED INDENTATION) ---
+# --- 6. METHODOLOGY BUTTON (TOGGLE LOGIC) ---
 col_info1, col_info2, col_info3 = st.columns([1, 2, 1])
-with col_info2:
-    show_methodology = st.button("ℹ️ VIEW PROJECT METHODOLOGY & REPORT", use_container_width=True)
 
-if show_methodology:
-    st.info("👇 ACADEMIC REPORT DISPLAYED BELOW")
-    
-    # Using raw HTML without indentation to ensure Markdown parsing works correctly in Streamlit
+if 'show_methodology' not in st.session_state:
+    st.session_state.show_methodology = False
+
+def toggle_methodology():
+    st.session_state.show_methodology = not st.session_state.show_methodology
+
+with col_info2:
+    # Symboles Noir & Blanc sobres
+    btn_label = "✕ CLOSE REPORT" if st.session_state.show_methodology else "❖ VIEW PROJECT METHODOLOGY"
+    st.button(btn_label, on_click=toggle_methodology, use_container_width=True)
+
+if st.session_state.show_methodology:
+    # HTML SANS INDENTATION pour éviter les blocs de code
     st.markdown("""
-<div style="background: rgba(255,255,255,0.05); padding: 30px; border-radius: 15px; border: 1px solid #D4AF37;">
-<h2 style="color: #D4AF37; text-align: center; font-family: 'Playfair Display', serif; margin-bottom: 30px;">PROJECT METHODOLOGY & DESIGN CHOICES</h2>
-<h3 style="color: #FFF; border-bottom: 1px solid #555; padding-bottom: 10px;">1. Data & Motivations</h3>
-<ul style="color: #B0BEC5; font-family: 'Montserrat', sans-serif; line-height: 1.6;">
-<li><strong>Data Source:</strong> Simulated dataset (<code>my_coffee_life.csv</code>) based on realistic physiological models to enable a "Quantified Self" analysis.</li>
-<li><strong>Goal:</strong> Move beyond descriptive statistics (how many?) to explanatory analytics (why am I tired?).</li>
+<div style="background: rgba(30, 30, 30, 0.8); padding: 30px; border-radius: 10px; border: 1px solid #444; margin-bottom: 40px;">
+<h3 style="color: #D4AF37; text-align: center; margin-bottom: 20px; font-family: 'Playfair Display', serif;">PROJECT METHODOLOGY & DESIGN CHOICES</h3>
+<h4 style="color: #FFF; margin-bottom: 5px;">1. Data & Motivations</h4>
+<ul style="color: #B0BEC5; font-family: 'Montserrat', sans-serif; font-size: 0.95rem; line-height: 1.6;">
+<li><strong>Data Source:</strong> Simulated dataset (<code>my_coffee_life.csv</code>) based on realistic physiological models.</li>
+<li><strong>Goal:</strong> Move beyond descriptive statistics to explanatory analytics.</li>
 </ul>
 <br>
-<h3 style="color: #FFF; border-bottom: 1px solid #555; padding-bottom: 10px;">2. Structure & Layout</h3>
-<ul style="color: #B0BEC5; font-family: 'Montserrat', sans-serif; line-height: 1.6;">
-<li><strong>Single-Page Layout:</strong> Chosen to create a seamless narrative flow ("Scrollytelling") rather than disjointed tabs. It guides the user from the general (Overview) to the specific (Biological Impact).</li>
-<li><strong>Screenspace Use:</strong> High data-ink ratio. Charts are maximized, and text is kept concise. The 4-column KPI row provides an immediate "At a glance" summary.</li>
+<h4 style="color: #FFF; margin-bottom: 5px;">2. Structure & Layout</h4>
+<ul style="color: #B0BEC5; font-family: 'Montserrat', sans-serif; font-size: 0.95rem; line-height: 1.6;">
+<li><strong>Single-Page Layout:</strong> Narrative flow ("Scrollytelling") from Overview to Biological Impact.</li>
+<li><strong>Screenspace Use:</strong> High data-ink ratio. Charts are maximized.</li>
 </ul>
 <br>
-<h3 style="color: #FFF; border-bottom: 1px solid #555; padding-bottom: 10px;">3. Visual Encodings & Justifications</h3>
-<ul style="color: #B0BEC5; font-family: 'Montserrat', sans-serif; line-height: 1.6;">
-<li><strong>Heatmap (Overview):</strong> Selected because temporal habits are cyclical. It reveals density patterns (Monday morning vs. Weekend) better than a line chart.</li>
-<li><strong>Sankey / Parallel Categories (Context):</strong> Chosen to visualize the <em>flow</em> and complex relationships between categorical variables (Social -> Location -> Product).</li>
-<li><strong>Scatter Plot with Annotations (Biology):</strong> Used to show correlation. The added "Red Zone" (>4PM) is a pre-attentive attribute that draws the eye immediately to the insight regarding sleep disruption.</li>
-<li><strong>Gold/Dark Theme:</strong> A dark background reduces eye strain (useful for data-heavy apps) and the Gold/Amber palette semantically links to the coffee theme while providing high contrast for accessibility.</li>
+<h4 style="color: #FFF; margin-bottom: 5px;">3. Visual Encodings</h4>
+<ul style="color: #B0BEC5; font-family: 'Montserrat', sans-serif; font-size: 0.95rem; line-height: 1.6;">
+<li><strong>Heatmap:</strong> Reveals temporal density patterns.</li>
+<li><strong>Parallel Categories:</strong> Visualizes flow (Social › Location › Product).</li>
+<li><strong>Scatter Plot:</strong> Shows correlation (Hour vs Sleep) with a "Danger Zone" annotation.</li>
 </ul>
 </div>
 """, unsafe_allow_html=True)
@@ -257,7 +268,7 @@ st.markdown('<div class="section-header">01. EXECUTIVE SUMMARY</div>', unsafe_al
 c1, c2, c3, c4 = st.columns(4)
 c1.metric("TOTAL CUPS", len(df_filtered), "Volume")
 c2.metric("TOTAL SPEND", f"${df_filtered['price'].sum():.0f}", "USD")
-c3.metric("CAFFEINE", f"{df_filtered['caffeine_mg'].sum()/1000:.1f} g", "Total Intake")
+c3.metric("CAFFEINE", f"{df_filtered['caffeine_mg'].sum()/1000:.1f} g", "Intake")
 c4.metric("AVG SLEEP", f"{df_filtered['sleep_hours_next_night'].mean():.1f} h", "Next Night")
 
 st.write("") 
@@ -265,8 +276,7 @@ st.write("")
 col1, col2 = st.columns([2, 1])
 
 with col1:
-    st.markdown("##### ◆ WEEKLY RHYTHM (Heatmap)")
-    st.caption("Identifying high-intensity consumption windows.")
+    st.markdown("##### ❖ WEEKLY RHYTHM")
     hm_data = df_filtered.groupby(['DayOfWeek', 'Hour']).size().reset_index(name='Count')
     days_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
     
@@ -280,8 +290,7 @@ with col1:
     st.plotly_chart(fig_heat, use_container_width=True)
 
 with col2:
-    st.markdown("##### ◆ PREFERENCES (Donut)")
-    st.caption("Distribution of budget by coffee type.")
+    st.markdown("##### ❖ PREFERENCES")
     fig_pie = px.pie(
         df_filtered, 
         values='price', 
@@ -296,10 +305,9 @@ with col2:
 
 # --- 02. LIFESTYLE & CONTEXT FLOW ---
 st.markdown('<div class="section-header">02. LIFESTYLE & CONTEXT FLOW</div>', unsafe_allow_html=True)
-st.caption("How does my environment influence my consumption choices?")
 
-st.markdown("##### ◆ THE CONTEXTUAL FLOW (Parallel Categories)")
-st.caption("Tracing the path: Who I am with -> Where I am -> What I drink.")
+st.markdown("##### ❖ THE CONTEXTUAL FLOW")
+st.caption("Flow Analysis: Who › Where › What")
 
 # Parallel Categories (Sankey-like)
 fig_parcat = px.parallel_categories(
@@ -314,7 +322,7 @@ st.plotly_chart(fig_parcat, use_container_width=True)
 
 col_ctx1, col_ctx2 = st.columns(2)
 with col_ctx1:
-    st.markdown("##### ◆ ACTIVITY BREAKDOWN")
+    st.markdown("##### ❖ ACTIVITY BREAKDOWN")
     fig_tree = px.treemap(
         df_filtered, 
         path=['activity', 'coffee_type'], 
@@ -326,7 +334,7 @@ with col_ctx1:
     st.plotly_chart(fig_tree, use_container_width=True)
 
 with col_ctx2:
-    st.markdown("##### ◆ PRICE DISTRIBUTION")
+    st.markdown("##### ❖ PRICE DISTRIBUTION")
     fig_box = px.box(
         df_filtered, x='location', y='price',
         color='location',
@@ -337,11 +345,9 @@ with col_ctx2:
 
 
 # --- 03. FINANCIAL VELOCITY ---
-st.markdown('<div class="section-separator"></div>', unsafe_allow_html=True)
 st.markdown('<div class="section-header">03. FINANCIAL VELOCITY</div>', unsafe_allow_html=True)
 
-st.markdown("##### ◆ CUMULATIVE SPENDING OVER TIME")
-st.caption("Tracking the rate of expenditure throughout the year.")
+st.markdown("##### ❖ CUMULATIVE SPENDING")
 fig_area = px.area(
     df_filtered.sort_values('datetime'), 
     x='datetime', y='Cumul_Spend',
@@ -353,13 +359,12 @@ st.plotly_chart(fig_area, use_container_width=True)
 
 # --- 04. BIOLOGICAL IMPACT (The "Why") ---
 st.markdown('<div class="section-header">04. BIOLOGICAL IMPACT</div>', unsafe_allow_html=True)
-st.caption("Quantifying the effects of caffeine on sleep quality and mood regulation.")
 
 col_b1, col_b2 = st.columns([3, 2])
 
 with col_b1:
-    st.markdown("##### ◆ THE CAFFEINE CURFEW (Scatter)")
-    st.caption("Correlation between Hour of Intake (X) and Sleep Duration (Y). Note the red zone.")
+    st.markdown("##### ❖ THE CAFFEINE CURFEW")
+    st.caption("Correlation: Hour of Intake (X) vs Sleep Duration (Y)")
     fig_scatter = px.scatter(
         df_filtered, x='Hour', y='sleep_hours_next_night',
         size='caffeine_mg', color='location',
@@ -376,8 +381,8 @@ with col_b1:
     st.plotly_chart(fig_scatter, use_container_width=True)
 
 with col_b2:
-    st.markdown("##### ◆ MOOD SHIFT (Arrow Plot)")
-    st.caption("Average mood score Before vs. After coffee.")
+    st.markdown("##### ❖ MOOD SHIFT")
+    st.caption("Mood score: Before › After")
     
     # Calculate averages
     mood_agg = df_filtered.groupby('activity')[['mood_before', 'mood_after']].mean().reset_index()
@@ -402,13 +407,11 @@ with col_b2:
     fig_dumbell.update_layout(title="", xaxis_title="Mood Score (1-10)", **dark_layout)
     st.plotly_chart(fig_dumbell, use_container_width=True)
 
-# --- 05. LOCATION PROFILING (Radar) ---
+# --- 05. MULTIDIMENSIONAL PROFILE ---
 st.markdown('<div class="section-separator"></div>', unsafe_allow_html=True)
-st.markdown("##### ◆ LOCATION PROFILING (Multidimensional)")
-st.caption("Comparing different consumption locations across multiple metrics.")
+st.markdown("##### ❖ LOCATION PROFILING (Radar)")
 
 cols_radar = ['price', 'caffeine_mg', 'mood_after', 'sleep_hours_next_night']
-# Normalize
 radar_df = df_filtered.groupby('location')[cols_radar].mean().reset_index()
 for c in cols_radar:
     if radar_df[c].max() > 0:
@@ -439,6 +442,6 @@ st.plotly_chart(fig_radar, use_container_width=True)
 st.markdown("---")
 st.markdown("""
 <div style="text-align: center; font-size: 0.8rem; color: #757575; margin-top: 50px;">
-    VISUAL ANALYTICS PROJECT 2024 | DESIGNED WITH STREAMLIT & PLOTLY | SINGLE PAGE APPLICATION
+    VISUAL ANALYTICS PROJECT 2024 | DESIGNED WITH STREAMLIT & PLOTLY
 </div>
 """, unsafe_allow_html=True)
