@@ -17,10 +17,9 @@ st.set_page_config(
 # --- 2. CSS STYLE PREMIUM ---
 st.markdown("""
 <style>
-    /* FONTS */
     @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Bebas+Neue&display=swap');
 
-    /* APP BACKGROUND */
+    /* BACKGROUND */
     .stApp {
         background-color: #0a0a0a;
         background-image: radial-gradient(circle at 50% 0%, #2a0000, #0a0a0a 60%);
@@ -37,7 +36,7 @@ st.markdown("""
         text-shadow: 0 0 20px rgba(229, 9, 20, 0.5);
     }
 
-    /* KPI CARDS (Glassmorphism) */
+    /* KPI CARDS */
     .kpi-card {
         background: rgba(30, 30, 30, 0.4);
         backdrop-filter: blur(12px);
@@ -52,7 +51,7 @@ st.markdown("""
     .kpi-value { font-family: 'Bebas Neue', sans-serif; font-size: 2.8rem; color: #fff; margin-top: 5px; }
     .kpi-sub { font-size: 0.8rem; color: #46d369; }
 
-    /* CHARTS CONTAINER */
+    /* CHART BOXES */
     .chart-box {
         background: rgba(20, 20, 20, 0.5);
         border-radius: 16px;
@@ -60,37 +59,6 @@ st.markdown("""
         border: 1px solid rgba(255,255,255,0.05);
         margin-bottom: 24px;
         box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-    }
-
-    /* --- METHODOLOGY SECTION (ACADEMIC STYLE - B&W) --- */
-    .methodology-container {
-        background: #111 !important;
-        border: 1px solid #333 !important;
-        padding: 25px;
-        border-radius: 8px;
-        color: #ccc !important;
-        font-family: 'Outfit', sans-serif;
-        font-size: 0.95rem;
-        line-height: 1.6;
-    }
-    .methodology-container h4 { 
-        color: #fff !important; 
-        border-bottom: 1px solid #333; 
-        padding-bottom: 5px; 
-        margin-top: 20px; 
-        font-family: 'Outfit', sans-serif;
-        letter-spacing: 1px;
-    }
-    .methodology-container ul { margin-bottom: 10px; }
-    .methodology-container li { margin-bottom: 5px; color: #aaa; }
-    .methodology-container strong { color: #fff; }
-    
-    /* Streamlit Expander Styling */
-    .streamlit-expanderHeader { 
-        background-color: #1a1a1a !important; 
-        color: #fff !important; 
-        border: 1px solid #333; 
-        border-radius: 8px;
     }
 
     /* LIST CARDS */
@@ -117,7 +85,7 @@ def load_data():
     try:
         try: df = pd.read_csv(GITHUB_URL)
         except: 
-            # Fallback point-virgule
+            # Fallback
             df = pd.read_csv(GITHUB_URL, sep=';')
 
         # Date Parsing
@@ -199,60 +167,50 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# --- METHODOLOGY SECTION (FIXED: HTML ALLOWED) ---
+# --- METHODOLOGY SECTION (VERSION MARKDOWN SECURISEE) ---
 with st.expander("🛠️ METHODOLOGY & DESIGN RATIONALE"):
+    st.markdown("#### 1. DATA & METADATA")
     st.markdown("""
-    <div class="methodology-container">
-        
-        <h4>1. DATA & METADATA</h4>
-        <p>The dataset was constructed to simulate a comprehensive viewing history (2024-2026).
-        <ul>
-            <li><strong>Source:</strong> Synthetic generation based on real-world content logic (Netflix catalogue).</li>
-            <li><strong>Enrichment:</strong> Data was crossed with the <em>Open-Meteo API</em> to retrieve historical weather conditions for Paris (Rain, Sun, Snow).</li>
-            <li><strong>Metadata:</strong> New features were engineered, such as <em>Duration</em> (estimated by genre), <em>Seasonality</em> (Winter/Summer), and <em>Binge Streak</em> (consecutive episodes watched).</li>
-        </ul>
-        </p>
+    The dataset was constructed to simulate a comprehensive viewing history (2024-2026).
+    * **Source:** Synthetic generation based on real-world content logic (Netflix catalogue).
+    * **Enrichment:** Data was crossed with the *Open-Meteo API* to retrieve historical weather conditions for Paris (Rain, Sun, Snow).
+    * **Metadata:** New features were engineered, such as *Duration* (estimated by genre), *Seasonality* (Winter/Summer), and *Binge Streak* (consecutive episodes watched).
+    """)
 
-        <h4>2. STRUCTURE & LAYOUT</h4>
-        <p>The dashboard follows a <strong>"Funnel Structure"</strong> (General to Specific):
-        <ul>
-            <li><strong>Top Level:</strong> Global KPIs (Total Hours, Volume) for immediate insight.</li>
-            <li><strong>Mid Level:</strong> Temporal trends and Genre distribution.</li>
-            <li><strong>Deep Dive:</strong> Correlation analysis (Weather vs Content, Rating Psychology).</li>
-            <li><strong>Bottom Level:</strong> Granular data lists (Top/Flop).</li>
-        </ul>
-        The layout uses a <strong>2-column grid</strong> to balance density and readability, optimizing screenspace without overcrowding.
-        </p>
+    st.markdown("#### 2. STRUCTURE & LAYOUT")
+    st.markdown("""
+    The dashboard follows a **"Funnel Structure"** (General to Specific):
+    * **Top Level:** Global KPIs (Total Hours, Volume) for immediate insight.
+    * **Mid Level:** Temporal trends and Genre distribution.
+    * **Deep Dive:** Correlation analysis (Weather vs Content, Rating Psychology).
+    * **Bottom Level:** Granular data lists (Top/Flop).
+    
+    The layout uses a **2-column grid** to balance density and readability, optimizing screenspace without overcrowding.
+    """)
 
-        <h4>3. VISUAL REPRESENTATIONS</h4>
-        <p>Charts were chosen based on the specific nature of the data:
-        <ul>
-            <li><strong>Scatter Plot (Temp vs Volume):</strong> Used to detect correlations between continuous variables (Temperature) and viewing habits.</li>
-            <li><strong>Box Plot (Rating by Genre):</strong> Chosen over bar charts to visualize the <em>spread</em> and <em>medians</em> of ratings, revealing which genres are consistently liked vs. polarizing.</li>
-            <li><strong>Heatmap (Day vs Month):</strong> selected to identify "Hotspots" of activity across the calendar week.</li>
-            <li><strong>Radar Chart:</strong> Efficiently displays the multi-dimensional balance of genre consumption.</li>
-        </ul>
-        </p>
+    st.markdown("#### 3. VISUAL REPRESENTATIONS")
+    st.markdown("""
+    Charts were chosen based on the specific nature of the data:
+    * **Scatter Plot (Temp vs Volume):** Used to detect correlations between continuous variables (Temperature) and viewing habits.
+    * **Box Plot (Rating by Genre):** Chosen over bar charts to visualize the *spread* and *medians* of ratings, revealing which genres are consistently liked vs. polarizing.
+    * **Heatmap (Day vs Month):** Selected to identify "Hotspots" of activity across the calendar week.
+    * **Radar Chart:** Efficiently displays the multi-dimensional balance of genre consumption.
+    """)
 
-        <h4>4. INTERACTION & SCREENSPACE</h4>
-        <p>
-        <ul>
-            <li><strong>Sidebar:</strong> All filters (Date, Genre) are isolated in the sidebar to maximize the main view for analysis (Output).</li>
-            <li><strong>Dynamic Filtering:</strong> All KPIs and charts update instantly, allowing users to explore specific slices of data (e.g., "Only Sci-Fi in Winter").</li>
-            <li><strong>Collapsible Section:</strong> This methodology section is hidden by default (Expander) to respect the "Data-Ink Ratio".</li>
-        </ul>
-        </p>
+    st.markdown("#### 4. INTERACTION & SCREENSPACE")
+    st.markdown("""
+    * **Sidebar:** All filters (Date, Genre) are isolated in the sidebar to maximize the main view for analysis (Output).
+    * **Dynamic Filtering:** All KPIs and charts update instantly, allowing users to explore specific slices of data.
+    * **Collapsible Section:** This methodology section is hidden by default (Expander) to respect the "Data-Ink Ratio".
+    """)
 
-        <h4>5. COLOR USE</h4>
-        <p>The design adopts a <strong>Cinematic Dark Mode</strong> to mimic the streaming platform's aesthetic.
-        <ul>
-            <li><strong>Brand Identity:</strong> <span style="color:#E50914">Netflix Red</span> is used for primary branding and emphasis.</li>
-            <li><strong>Semantic Colors:</strong> <span style="color:#46d369">Green</span> indicates positive metrics (High ratings), while <span style="color:#E50914">Red</span> indicates negative ones (Flops).</li>
-            <li><strong>Weather Coding:</strong> Intuitive colors used for context (Yellow=Sun, Blue=Rain).</li>
-        </ul>
-        </p>
-    </div>
-    """, unsafe_allow_html=True) # ✅ C'EST ICI LA CORRECTION
+    st.markdown("#### 5. COLOR USE")
+    st.markdown("""
+    The design adopts a **Cinematic Dark Mode** to mimic the streaming platform's aesthetic.
+    * **Brand Identity:** :red[Netflix Red] is used for primary branding and emphasis.
+    * **Semantic Colors:** :green[Green] indicates positive metrics (High ratings), while :red[Red] indicates negative ones (Flops).
+    * **Weather Coding:** Intuitive colors used for context (Yellow=Sun, Blue=Rain).
+    """)
 
 st.markdown("<br>", unsafe_allow_html=True)
 
