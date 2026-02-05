@@ -57,14 +57,13 @@ st.markdown("""
         box-shadow: 0 4px 20px rgba(0,0,0,0.3);
     }
 
-    /* LIST CARDS (POUR LE TOP/FLOP) */
     .list-card {
         background: rgba(255, 255, 255, 0.03);
         border-radius: 8px; padding: 12px; margin-bottom: 8px;
         border-left: 3px solid #333; display: flex; justify-content: space-between; align-items: center;
     }
-    .list-card.top { border-left-color: #46d369; } /* Vert */
-    .list-card.flop { border-left-color: #E50914; } /* Rouge */
+    .list-card.top { border-left-color: #46d369; }
+    .list-card.flop { border-left-color: #E50914; }
 
     div[data-testid="stMetric"] { display: none; }
     #MainMenu {visibility: hidden;} footer {visibility: hidden;}
@@ -203,7 +202,7 @@ with col2:
     st.plotly_chart(fig_r, use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-# ROW 2: BEHAVIORAL TRENDS
+# ROW 2: NEW DASHBOARDS
 st.markdown("### 🧬 Behavioral Trends")
 c_evo, c_day, c_type = st.columns([2, 1, 1])
 
@@ -241,7 +240,7 @@ with c_type:
         st.write("Data Type missing")
     st.markdown('</div>', unsafe_allow_html=True)
 
-# ROW 3: CONTEXT ANALYSIS
+# ROW 3: CONTEXT
 st.markdown("### 🌪️ Context Analysis")
 c_w1, c_w2 = st.columns(2)
 
@@ -269,26 +268,27 @@ st.markdown("### ⭐ Ratings & Weather Deep Dive")
 col_rate, col_temp = st.columns(2)
 
 with col_rate:
-    st.markdown("**My Rating Distribution (Quality Check)**")
+    st.markdown("**Rating Spread by Genre (Box Plot)**")
     st.markdown('<div class="chart-box">', unsafe_allow_html=True)
     
-    rating_counts = df_filtered['My_Rating'].value_counts().reset_index()
-    rating_counts.columns = ['Rating', 'Count']
-    rating_counts = rating_counts.sort_values('Rating')
-
-    fig_hist = px.bar(rating_counts, x='Rating', y='Count', 
-                      color='Rating',
-                      color_continuous_scale='RdYlGn',
-                      text_auto=True)
+    # BOX PLOT: C'est ici le changement majeur
+    # On trie les genres par médiane pour voir rapidement ceux qu'on déteste (en bas) vs ceux qu'on aime (en haut)
+    genre_order = df_filtered.groupby('Genre')['My_Rating'].median().sort_values().index
     
-    fig_hist.update_layout(
+    fig_box = px.box(df_filtered, x="Genre", y="My_Rating", 
+                     color="Genre", 
+                     category_orders={"Genre": genre_order},
+                     color_discrete_sequence=px.colors.qualitative.Bold)
+                     
+    fig_box.update_layout(
         plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
         font=dict(color='#888'),
-        coloraxis_showscale=False,
-        xaxis=dict(tickmode='linear', dtick=1),
-        yaxis_title="Number of Titles"
+        showlegend=False,
+        yaxis_title="My Ratings (Spread)",
+        xaxis_title=None,
+        margin=dict(l=0,r=0,t=10,b=0)
     )
-    st.plotly_chart(fig_hist, use_container_width=True)
+    st.plotly_chart(fig_box, use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
 with col_temp:
@@ -311,7 +311,7 @@ with col_temp:
     st.plotly_chart(fig_scatter, use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-# --- DERNIERE SECTION : TOP & FLOP (AJOUTÉ COMME DEMANDÉ) ---
+# --- DERNIERE SECTION : TOP & FLOP ---
 st.markdown("### 🏆 Hall of Fame vs Wall of Shame")
 cl1, cl2 = st.columns(2)
 
