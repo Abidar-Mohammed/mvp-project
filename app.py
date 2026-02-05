@@ -8,7 +8,7 @@ import os
 
 # --- 1. CONFIGURATION DE LA PAGE ---
 st.set_page_config(
-    page_title="Netflix Analytics | Ultimate",
+    page_title="Netflix Insights | Personal Data",
     page_icon="🎬",
     layout="wide",
     initial_sidebar_state="collapsed"
@@ -17,6 +17,7 @@ st.set_page_config(
 # --- 2. CSS STYLE PREMIUM ---
 st.markdown("""
 <style>
+    /* FONTS */
     @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Bebas+Neue&display=swap');
 
     /* APP BACKGROUND */
@@ -26,6 +27,7 @@ st.markdown("""
         color: #e0e0e0;
     }
 
+    /* TYPOGRAPHY */
     h1, h2, h3 { font-family: 'Outfit', sans-serif; font-weight: 600; }
     
     .netflix-font {
@@ -35,7 +37,7 @@ st.markdown("""
         text-shadow: 0 0 20px rgba(229, 9, 20, 0.5);
     }
 
-    /* KPI CARDS */
+    /* KPI CARDS (Glassmorphism) */
     .kpi-card {
         background: rgba(30, 30, 30, 0.4);
         backdrop-filter: blur(12px);
@@ -55,8 +57,8 @@ st.markdown("""
         border-radius: 12px;
         border: 1px solid rgba(255,255,255,0.05);
         margin-bottom: 20px;
-        padding: 0; /* Padding géré à l'intérieur */
-        overflow: hidden; /* Pour que le header ne dépasse pas */
+        padding: 0; 
+        overflow: hidden;
         box-shadow: 0 4px 20px rgba(0,0,0,0.3);
     }
     
@@ -87,6 +89,7 @@ st.markdown("""
     .list-card.top { border-left-color: #46d369; }
     .list-card.flop { border-left-color: #E50914; }
 
+    /* HIDE DEFAULTS */
     div[data-testid="stMetric"] { display: none; }
     #MainMenu {visibility: hidden;} footer {visibility: hidden;}
     
@@ -111,10 +114,13 @@ def load_data():
         if df['Date'].isna().all(): df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
         df = df.dropna(subset=['Date'])
 
+        # Metadata Logic (Identique à ce que tu as validé)
         def get_metadata(row):
             t = str(row.get('Title', '')).lower()
             g = str(row.get('Genre', '')).lower()
             is_show = 'saison' in t or 'season' in t or 'episode' in t or ':' in t
+            
+            # Durées standards utilisées pour le calcul
             if not is_show: return pd.Series([105, 'Movie'])
             if 'anime' in g: return pd.Series([24, 'Series'])
             if 'comedy' in g: return pd.Series([22, 'Series'])
@@ -151,6 +157,27 @@ def load_data():
 df = load_data()
 if df.empty: st.stop()
 
+# --- HELPER FOR CHARTS STYLE ---
+def style_chart(fig, title_text):
+    # Suppression du titre interne car on utilise le cadre HTML
+    fig.update_layout(
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)', # Transparent pour fondre dans la boite
+        font=dict(color='#888', family="Outfit"),
+        margin=dict(l=10, r=10, t=10, b=10),
+    )
+    return fig
+
+def box_chart(title, fig):
+    # Cette fonction crée le rectangle avec le titre, puis met le graphe dedans
+    st.markdown(f"""
+    <div class="chart-box">
+        <div class="chart-header">{title}</div>
+        <div class="chart-content">
+    """, unsafe_allow_html=True)
+    st.plotly_chart(fig, use_container_width=True)
+    st.markdown("</div></div>", unsafe_allow_html=True)
+
 # --- 4. SIDEBAR ---
 with st.sidebar:
     st.markdown("<h1 style='color:#E50914; font-family: Bebas Neue; font-size: 3rem; text-align:center;'>N <span style='color:white'>DATA</span></h1>", unsafe_allow_html=True)
@@ -165,28 +192,28 @@ with st.sidebar:
 
 # --- 5. MAIN CONTENT ---
 
-# TITRE PRINCIPAL
+# MAIN TITLE (MODIFIÉ)
 st.markdown("""
     <div style="margin-bottom: 30px;">
         <h1 style="font-family: 'Bebas Neue'; font-size: 5rem; line-height:0.8; margin-bottom: 0;">
-            <span style="color:#E50914;">N</span>ETFLIX ANALYTICS
+            <span style="color:#E50914;">N</span>ETFLIX INSIGHTS
         </h1>
-        <p style="color: #888; font-size: 1.2rem; font-family: 'Outfit'; margin-top: 5px;">
-            PERSONAL VIEWING HISTORY & BEHAVIORAL PATTERNS
+        <p style="color: #888; font-size: 1.2rem; font-family: 'Outfit'; margin-top: 10px; letter-spacing: 1px;">
+            ADVANCED ANALYSIS OF STREAMING HABITS & CONTENT PREFERENCES (2024-2026)
         </p>
     </div>
 """, unsafe_allow_html=True)
 
-# --- METHODOLOGIE (CORRECTION: MARKDOWN PUR) ---
+# METHODOLOGY (MARKDOWN PUR & DÉTAILS DURÉE AJOUTÉS)
 with st.expander("🛠️ METHODOLOGY & DESIGN RATIONALE"):
     
     st.markdown("#### 1. DATA CONSTRUCTION & SOURCES")
     st.markdown("""
     To create a truly comprehensive picture of my viewing habits, I constructed a dataset by merging **three distinct sources**:
     * **Netflix History:** I extracted the raw viewing logs directly from my account to get the precise timeline of what I watched.
-    * **IMDB Ratings:** Watching isn't enough, so I cross-referenced titles with my personal ratings to add a qualitative dimension (Did I like it?).
+    * **IMDB Ratings:** Watching isn't enough, so I cross-referenced titles with my personal ratings to add a qualitative dimension ("Did I like it?").
     * **Paris Weather:** I enriched every entry with historical data (Temperature, Precipitation) from the *Open-Meteo API*, matching the exact dates I was in Paris.
-    * **Metadata Engineering:** I created specific metrics like *Seasonality* and *Binge Streak* (consecutive episodes) to deepen the analysis.
+    * **Metadata Engineering:** Since Netflix logs don't provide exact duration, I implemented a **Weighted Duration Model**: *Anime (24m)*, *Sitcoms (22m)*, *Standard Dramas (50m)*, and *Movies (~105m)*. This allows for an accurate estimation of total watch time.
     """)
 
     st.markdown("#### 2. STRUCTURE & LAYOUT")
@@ -236,22 +263,6 @@ kpi(c4, "DOMINANT GENRE", fav_g.upper(), "Most Frequent")
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# FONCTION D'AFFICHAGE (TITRE DANS LA BOITE + GRAPHE)
-def box_chart(title, fig):
-    fig.update_layout(
-        plot_bgcolor='rgba(0,0,0,0)', 
-        paper_bgcolor='rgba(0,0,0,0)', 
-        font=dict(color='#888', family="Outfit"),
-        margin=dict(l=10, r=10, t=10, b=10) # Marges réduites
-    )
-    st.markdown(f"""
-    <div class="chart-box">
-        <div class="chart-header">{title}</div>
-        <div class="chart-content">
-    """, unsafe_allow_html=True)
-    st.plotly_chart(fig, use_container_width=True)
-    st.markdown("</div></div>", unsafe_allow_html=True)
-
 # SECTION 1
 st.markdown("### 📊 GLOBAL VIEWING TRENDS")
 col1, col2 = st.columns([2, 1])
@@ -259,6 +270,7 @@ col1, col2 = st.columns([2, 1])
 with col1:
     monthly = df_filtered.groupby('MonthYear')['Title'].count().reset_index()
     fig = px.bar(monthly, x='MonthYear', y='Title', color_discrete_sequence=['#E50914'])
+    fig = style_chart(fig, "")
     fig.update_layout(xaxis_title=None, yaxis_title=None)
     box_chart("Monthly Content Volume", fig)
 
@@ -267,6 +279,7 @@ with col2:
     gc.columns = ['Genre', 'Count']
     fig_r = px.line_polar(gc, r='Count', theta='Genre', line_close=True)
     fig_r.update_traces(fill='toself', line_color='#E50914', fillcolor='rgba(229, 9, 20, 0.3)')
+    fig_r = style_chart(fig_r, "")
     fig_r.update_layout(polar=dict(bgcolor='rgba(0,0,0,0)', radialaxis=dict(visible=False)))
     box_chart("Genre Distribution", fig_r)
 
@@ -277,6 +290,7 @@ c_evo, c_day, c_type = st.columns([2, 1, 1])
 with c_evo:
     evo = df_filtered.groupby(['MonthYear', 'Genre']).size().reset_index(name='Count')
     fig_evo = px.area(evo, x="MonthYear", y="Count", color="Genre", color_discrete_sequence=px.colors.qualitative.Vivid)
+    fig_evo = style_chart(fig_evo, "")
     fig_evo.update_layout(legend=dict(orientation="h", y=1.1, title=None), xaxis_title=None, yaxis_title=None)
     box_chart("Temporal Genre Evolution", fig_evo)
 
@@ -286,6 +300,7 @@ with c_day:
     dd = pd.DataFrame({'Day': days})
     dd['Count'] = dd['Day'].map(day_counts).fillna(0)
     fig_d = px.bar(dd, x='Day', y='Count', color='Count', color_continuous_scale='Reds')
+    fig_d = style_chart(fig_d, "")
     fig_d.update_layout(coloraxis_showscale=False, xaxis_title=None, yaxis_title=None)
     box_chart("Weekly Activity", fig_d)
 
@@ -293,6 +308,7 @@ with c_type:
     if 'Type' in df_filtered.columns:
         td = df_filtered['Type'].value_counts()
         fig_p = go.Figure(data=[go.Pie(labels=td.index, values=td.values, hole=.7, marker=dict(colors=['#E50914', '#333']))])
+        fig_p = style_chart(fig_p, "")
         fig_p.update_layout(showlegend=False, margin=dict(t=0,b=0,l=0,r=0))
         box_chart("Format Ratio", fig_p)
 
@@ -303,12 +319,14 @@ c_w1, c_w2 = st.columns(2)
 with c_w1:
     ct = df_filtered.groupby(['Weather', 'Genre']).size().reset_index(name='Count')
     fig_s = px.bar(ct, x="Weather", y="Count", color="Genre", color_discrete_sequence=px.colors.qualitative.Pastel)
+    fig_s = style_chart(fig_s, "")
     fig_s.update_layout(legend=dict(orientation="h", y=1.1, title=None), xaxis_title=None)
     box_chart("Weather Impact on Genre", fig_s)
 
 with c_w2:
     hd = df_filtered.groupby(['DayOfWeek', 'Month']).size().reset_index(name='Count')
     fig_hm = px.density_heatmap(hd, x='Month', y='DayOfWeek', z='Count', category_orders={'DayOfWeek': days}, color_continuous_scale='Redor')
+    fig_hm = style_chart(fig_hm, "")
     fig_hm.update_layout(coloraxis_showscale=False, xaxis_title=None, yaxis_title=None)
     box_chart("Activity Heatmap (Day vs Month)", fig_hm)
 
@@ -320,12 +338,14 @@ with col_rate:
     genre_order = df_filtered.groupby('Genre')['My_Rating'].median().sort_values().index
     fig_box = px.box(df_filtered, x="Genre", y="My_Rating", color="Genre", 
                      category_orders={"Genre": genre_order}, color_discrete_sequence=px.colors.qualitative.Bold)
+    fig_box = style_chart(fig_box, "")
     fig_box.update_layout(showlegend=False, yaxis_title="Rating (1-10)", xaxis_title=None)
     box_chart("Rating Distribution by Genre", fig_box)
 
 with col_temp:
     ds = df_filtered.groupby('Date').agg({'Title': 'count', 'Temp_C': 'mean'}).reset_index()
     fig_sc = px.scatter(ds, x="Temp_C", y="Title", size="Title", color="Temp_C", color_continuous_scale="Turbo")
+    fig_sc = style_chart(fig_sc, "")
     fig_sc.update_layout(xaxis_title="Temperature (°C)", yaxis_title="Episodes/Day", coloraxis_showscale=False)
     box_chart("Temperature vs Volume Correlation", fig_sc)
 
@@ -340,6 +360,7 @@ with col_hook:
         streak_data = series_df.groupby(['Genre', 'BlockID']).size().reset_index(name='StreakLength')
         avg_streak = streak_data.groupby('Genre')['StreakLength'].mean().reset_index().sort_values('StreakLength', ascending=False)
         fig_st = px.bar(avg_streak, x="StreakLength", y="Genre", orientation='h', text_auto='.1f', color="StreakLength", color_continuous_scale="Reds")
+        fig_st = style_chart(fig_st, "")
         fig_st.update_layout(coloraxis_showscale=False, xaxis_title="Avg Consecutive Episodes", yaxis_title=None)
         box_chart("Binge Velocity (Avg Streak)", fig_st)
     else:
@@ -348,6 +369,7 @@ with col_hook:
 with col_season:
     ss = df_filtered.groupby(['Season', 'Genre']).size().reset_index(name='Count')
     fig_sea = px.bar(ss, x="Season", y="Count", color="Genre", category_orders={"Season": ['❄️ Winter', '🌱 Spring', '☀️ Summer', '🍂 Autumn']}, color_discrete_sequence=px.colors.qualitative.Vivid, barmode="group")
+    fig_sea = style_chart(fig_sea, "")
     fig_sea.update_layout(legend=dict(orientation="h", y=1.1, title=None), xaxis_title=None)
     box_chart("Seasonal Genre Preferences", fig_sea)
 
@@ -361,7 +383,10 @@ with cl1:
     for _, r in top.iterrows():
         st.markdown(f"""
         <div class="list-card top">
-            <div><strong style="color:white; font-size:1.1rem;">{r['Title']}</strong><br><span style="color:#888; font-size:0.85rem;">{r['Genre']} • {r['Weather']}</span></div>
+            <div>
+                <strong style="color:white; font-size:1.1rem;">{r['Title']}</strong><br>
+                <span style="color:#888; font-size:0.85rem;">{r['Genre']} • {r['Weather']}</span>
+            </div>
             <div style="background:#46d369; color:#000; padding:5px 10px; border-radius:6px; font-weight:bold; font-size:1.2rem;">{r['My_Rating']}</div>
         </div>""", unsafe_allow_html=True)
 
@@ -371,7 +396,10 @@ with cl2:
     for _, r in flop.iterrows():
         st.markdown(f"""
         <div class="list-card flop">
-            <div><strong style="color:white; font-size:1.1rem;">{r['Title']}</strong><br><span style="color:#888; font-size:0.85rem;">{r['Genre']} • {r['Weather']}</span></div>
+            <div>
+                <strong style="color:white; font-size:1.1rem;">{r['Title']}</strong><br>
+                <span style="color:#888; font-size:0.85rem;">{r['Genre']} • {r['Weather']}</span>
+            </div>
             <div style="background:#E50914; color:#fff; padding:5px 10px; border-radius:6px; font-weight:bold; font-size:1.2rem;">{r['My_Rating']}</div>
         </div>""", unsafe_allow_html=True)
 
