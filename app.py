@@ -205,7 +205,7 @@ with st.expander("🛠️ METHODOLOGY & DESIGN RATIONALE"):
     * **Cinematic Dark Mode:** Adopts a dark background for visual comfort and immersion.
     * **Brand Identity:** Uses :red[**Netflix Red**] for primary branding and emphasis.
     * **Semantic Coloring:** I used :green[**Green**] for positive metrics (High ratings, Streaks) and :red[**Red**] for negative ones (Flops), guiding the eye intuitively.
-    * **Contextual Colors:** Natural associations were used for weather (Yellow=Sun, Blue=Rain).
+    * **Contextual Colors:** Natural associations were used for weather (Yellow for Sun, Blue for Rain).
     """)
 
 st.markdown("<br>", unsafe_allow_html=True)
@@ -373,3 +373,4 @@ with cl2:
         st.markdown(f"""<div class="list-card flop"><div><strong style="color:white;">{r['Title']}</strong><br><span style="color:#888; font-size:0.85rem;">{r['Genre']} • {r['Weather']}</span></div><div style="background:#E50914; color:#fff; padding:4px 8px; border-radius:6px; font-weight:bold;">{r['My_Rating']}</div></div>""", unsafe_allow_html=True)
 
 st.markdown("<br><center style='color:#555'>NETFLIX ANALYTICS • 2024</center>", unsafe_allow_html=True)
+
