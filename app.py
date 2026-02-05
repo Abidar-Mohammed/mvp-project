@@ -6,7 +6,7 @@ import numpy as np
 import random
 import os
 
-# --- 1. PAGE CONFIGURATION ---
+# --- 1. CONFIGURATION DE LA PAGE ---
 st.set_page_config(
     page_title="Netflix Analytics | Ultimate",
     page_icon="🎬",
@@ -14,7 +14,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. CSS STYLING (HYBRID: COLORFUL APP + ACADEMIC METHODOLOGY) ---
+# --- 2. CSS STYLE PREMIUM ---
 st.markdown("""
 <style>
     /* FONTS */
@@ -199,7 +199,7 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# --- METHODOLOGY SECTION (ACADEMIC) ---
+# --- METHODOLOGY SECTION (FIXED: HTML ALLOWED) ---
 with st.expander("🛠️ METHODOLOGY & DESIGN RATIONALE"):
     st.markdown("""
     <div class="methodology-container">
@@ -252,7 +252,7 @@ with st.expander("🛠️ METHODOLOGY & DESIGN RATIONALE"):
         </ul>
         </p>
     </div>
-    """, unsafe_allow_html=True)
+    """, unsafe_allow_html=True) # ✅ FIXED HERE
 
 st.markdown("<br>", unsafe_allow_html=True)
 
