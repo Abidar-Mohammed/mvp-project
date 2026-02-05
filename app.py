@@ -17,9 +17,10 @@ st.set_page_config(
 # --- 2. CSS STYLE PREMIUM ---
 st.markdown("""
 <style>
+    /* FONTS */
     @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Bebas+Neue&display=swap');
 
-    /* BACKGROUND */
+    /* APP BACKGROUND */
     .stApp {
         background-color: #0a0a0a;
         background-image: radial-gradient(circle at 50% 0%, #2a0000, #0a0a0a 60%);
@@ -36,7 +37,7 @@ st.markdown("""
         text-shadow: 0 0 20px rgba(229, 9, 20, 0.5);
     }
 
-    /* KPI CARDS */
+    /* KPI CARDS (Glassmorphism) */
     .kpi-card {
         background: rgba(30, 30, 30, 0.4);
         backdrop-filter: blur(12px);
@@ -51,7 +52,7 @@ st.markdown("""
     .kpi-value { font-family: 'Bebas Neue', sans-serif; font-size: 2.8rem; color: #fff; margin-top: 5px; }
     .kpi-sub { font-size: 0.8rem; color: #46d369; }
 
-    /* CHART BOXES */
+    /* CHARTS CONTAINER */
     .chart-box {
         background: rgba(20, 20, 20, 0.5);
         border-radius: 16px;
@@ -59,6 +60,38 @@ st.markdown("""
         border: 1px solid rgba(255,255,255,0.05);
         margin-bottom: 24px;
         box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+
+    /* --- METHODOLOGY SECTION (ACADEMIC STYLE - B&W) --- */
+    .methodology-container {
+        background: #111 !important;
+        border: 1px solid #333 !important;
+        padding: 30px;
+        border-radius: 8px;
+        color: #ccc !important;
+        font-family: 'Outfit', sans-serif;
+        font-size: 0.95rem;
+        line-height: 1.8; /* Plus d'espace pour la lisibilité */
+    }
+    .methodology-container h4 { 
+        color: #fff !important; 
+        border-bottom: 1px solid #333; 
+        padding-bottom: 8px; 
+        margin-top: 25px; 
+        margin-bottom: 15px;
+        font-family: 'Outfit', sans-serif;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+    }
+    .methodology-container p { margin-bottom: 15px; text-align: justify; }
+    .methodology-container strong { color: #fff; font-weight: 600; }
+    
+    /* Streamlit Expander Styling */
+    .streamlit-expanderHeader { 
+        background-color: #1a1a1a !important; 
+        color: #fff !important; 
+        border: 1px solid #333; 
+        border-radius: 8px;
     }
 
     /* LIST CARDS */
@@ -167,50 +200,50 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# --- METHODOLOGY SECTION (VERSION MARKDOWN SECURISEE) ---
+# --- METHODOLOGY SECTION (HUMANIZED) ---
 with st.expander("🛠️ METHODOLOGY & DESIGN RATIONALE"):
-    st.markdown("#### 1. DATA & METADATA")
     st.markdown("""
-    The dataset was constructed to simulate a comprehensive viewing history (2024-2026).
-    * **Source:** Synthetic generation based on real-world content logic (Netflix catalogue).
-    * **Enrichment:** Data was crossed with the *Open-Meteo API* to retrieve historical weather conditions for Paris (Rain, Sun, Snow).
-    * **Metadata:** New features were engineered, such as *Duration* (estimated by genre), *Seasonality* (Winter/Summer), and *Binge Streak* (consecutive episodes watched).
-    """)
+    <div class="methodology-container">
+        
+        <h4>1. DATA CONSTRUCTION & SOURCES</h4>
+        <p>
+            To create a truly comprehensive picture of my viewing habits, I constructed a dataset by merging <strong>three distinct sources</strong>. 
+            First, I extracted the raw viewing logs directly from my <strong>Netflix account</strong> to get the precise history. 
+            However, watching is not enough; I wanted to include a qualitative dimension. I therefore cross-referenced these titles with my personal rating history on <strong>IMDB</strong> to reflect my appreciation of each content.
+            Finally, to contextualize these habits within my real environment, I enriched every single entry with historical weather data (Temperature, Precipitation) for <strong>Paris</strong>—the city where I live—using the Open-Meteo API to match the exact date of each viewing.
+        </p>
+        <p>
+            Beyond raw data, I engineered specific metadata to deepen the analysis. I calculated <em>Seasonality</em> to see if my taste changes from Winter to Summer, and developed a specific logic for <em>Binge Streaks</em> to measure how many episodes I typically watch in a row before stopping.
+        </p>
 
-    st.markdown("#### 2. STRUCTURE & LAYOUT")
-    st.markdown("""
-    The dashboard follows a **"Funnel Structure"** (General to Specific):
-    * **Top Level:** Global KPIs (Total Hours, Volume) for immediate insight.
-    * **Mid Level:** Temporal trends and Genre distribution.
-    * **Deep Dive:** Correlation analysis (Weather vs Content, Rating Psychology).
-    * **Bottom Level:** Granular data lists (Top/Flop).
-    
-    The layout uses a **2-column grid** to balance density and readability, optimizing screenspace without overcrowding.
-    """)
+        <h4>2. STRUCTURE & LAYOUT</h4>
+        <p>
+            I designed the dashboard structure to follow a logical analytical flow, moving from the general to the specific. 
+            It begins with high-level <strong>KPIs</strong> to give an immediate overview of volume and time. 
+            Then, we move to <strong>temporal trends</strong> and genre distribution to understand the "When" and "What".
+            The analysis then dives deeper into correlations (Weather vs. Content, Rating Psychology) to understand the "Why".
+            Finally, the dashboard concludes with granular lists of my Top and Flop contents.
+            I opted for a 2-column grid layout to balance information density with readability, optimizing screenspace without cluttering the view.
+        </p>
 
-    st.markdown("#### 3. VISUAL REPRESENTATIONS")
-    st.markdown("""
-    Charts were chosen based on the specific nature of the data:
-    * **Scatter Plot (Temp vs Volume):** Used to detect correlations between continuous variables (Temperature) and viewing habits.
-    * **Box Plot (Rating by Genre):** Chosen over bar charts to visualize the *spread* and *medians* of ratings, revealing which genres are consistently liked vs. polarizing.
-    * **Heatmap (Day vs Month):** Selected to identify "Hotspots" of activity across the calendar week.
-    * **Radar Chart:** Efficiently displays the multi-dimensional balance of genre consumption.
-    """)
+        <h4>3. VISUAL REPRESENTATIONS</h4>
+        <p>
+            Each chart was chosen to answer a specific question. 
+            I used <strong>Scatter Plots</strong> to detect subtle correlations between continuous variables like Temperature and viewing volume.
+            For ratings, I deliberately chose <strong>Box Plots</strong> over simple averages because they reveal the distribution and spread of my appreciation, showing clearly which genres are consistently liked versus those that are polarizing.
+            To visualize my activity hotspots across the week, a <strong>Heatmap</strong> was the most effective choice.
+            Lastly, the <strong>Radar Chart</strong> allows for a quick comparison of the multi-dimensional balance of my genre consumption.
+        </p>
 
-    st.markdown("#### 4. INTERACTION & SCREENSPACE")
-    st.markdown("""
-    * **Sidebar:** All filters (Date, Genre) are isolated in the sidebar to maximize the main view for analysis (Output).
-    * **Dynamic Filtering:** All KPIs and charts update instantly, allowing users to explore specific slices of data.
-    * **Collapsible Section:** This methodology section is hidden by default (Expander) to respect the "Data-Ink Ratio".
-    """)
-
-    st.markdown("#### 5. COLOR USE")
-    st.markdown("""
-    The design adopts a **Cinematic Dark Mode** to mimic the streaming platform's aesthetic.
-    * **Brand Identity:** :red[Netflix Red] is used for primary branding and emphasis.
-    * **Semantic Colors:** :green[Green] indicates positive metrics (High ratings), while :red[Red] indicates negative ones (Flops).
-    * **Weather Coding:** Intuitive colors used for context (Yellow=Sun, Blue=Rain).
-    """)
+        <h4>4. COLOR USE & AESTHETICS</h4>
+        <p>
+            The overall design adopts a <strong>Cinematic Dark Mode</strong> to mirror the aesthetic of the streaming platform itself. 
+            Regarding the color palette, I used <strong>Netflix Red</strong> for the primary branding. 
+            For data visualization, I employed semantic coloring to make the charts intuitive: <strong>Green</strong> naturally guides the eye to positive metrics (like high ratings), while <strong>Red</strong> signals negative ones (like low ratings or abandons). 
+            For the weather context, I used natural associations, such as sunny tones for clear days and cooler blue tones to represent rainy conditions.
+        </p>
+    </div>
+    """, unsafe_allow_html=True) # ✅ HTML ACTIVÉ
 
 st.markdown("<br>", unsafe_allow_html=True)
 
