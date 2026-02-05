@@ -8,7 +8,7 @@ import os
 
 # --- 1. CONFIGURATION DE LA PAGE ---
 st.set_page_config(
-    page_title="Netflix & Data Storytelling",
+    page_title="Netflix Analytics | Pro",
     page_icon="🎬",
     layout="wide",
     initial_sidebar_state="collapsed"
@@ -193,14 +193,14 @@ with st.sidebar:
 
 # --- 5. MAIN CONTENT ---
 
-# MAIN TITLE (NOUVEAU TITRE & SOUS-TITRE)
+# MAIN TITLE (MODIFIÉ)
 st.markdown("""
     <div style="margin-bottom: 30px;">
         <h1 style="font-family: 'Bebas Neue'; font-size: 5rem; line-height:0.8; margin-bottom: 0;">
-            <span style="color:#E50914;">N</span>ETFLIX & DATA STORYTELLING
+            <span style="color:#E50914;">N</span>ETFLIX WATCH HISTORY ANALYTICS
         </h1>
         <p style="color: #888; font-size: 1.1rem; font-family: 'Outfit'; margin-top: 10px; letter-spacing: 1px; text-transform: uppercase;">
-            Decoding Viewing Habits: From Raw Logs to Behavioral Psychology & Environmental Context
+            QUANTITATIVE ANALYSIS OF VIEWING TRENDS, PSYCHOMETRIC RATINGS & CLIMATIC IMPACT
         </p>
     </div>
 """, unsafe_allow_html=True)
