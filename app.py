@@ -109,9 +109,9 @@ def load_data():
             df[['Duration_Mins', 'Type']] = df.apply(get_metadata, axis=1)
 
         # Extraction Nom Série (Pour le taux d'abandon)
-        # On prend tout ce qui est avant le premier ":"
         def get_show_name(row):
             if row['Type'] == 'Movie': return row['Title']
+            # On nettoie le titre pour garder juste le nom de la série
             return row['Title'].split(':')[0]
         
         df['ShowName'] = df.apply(get_show_name, axis=1)
@@ -175,7 +175,7 @@ with st.expander("🛠️ TECHNICAL METHODOLOGY"):
         <p><strong>1. Data Ingestion:</strong> Parsing viewing history from Netflix CSV export.</p>
         <p><strong>2. Enrichment:</strong> Merging with Open-Meteo API (Historical Weather for Paris) and estimating content metadata.</p>
         <p><strong>3. Advanced Metrics:</strong> 
-           <br>- <em>Hook Rate:</em> Calculated by grouping viewings by Show Name. Shows with < 4 episodes watched are considered 'Abandoned'.
+           <br>- <em>Session Abandonment:</em> Based on <strong>Consecutive Streaks</strong>. If a viewing session of a series is interrupted (by another show or movie) before reaching 4 episodes, it is classified as 'Interrupted/Abandoned'.
            <br>- <em>Seasonality:</em> Grouping timestamps by meteorological seasons.
         </p>
     </div>
@@ -283,7 +283,7 @@ with c_w2:
     st.plotly_chart(fig_hm, use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-# --- NOUVELLE SECTION : DEEP DIVE NOTES & MÉTÉO ---
+# --- DEEP DIVE NOTES & MÉTÉO ---
 
 st.markdown("### ⭐ Ratings & Weather Deep Dive")
 col_rate, col_temp = st.columns(2)
@@ -294,12 +294,10 @@ with col_rate:
     
     # BOX PLOT
     genre_order = df_filtered.groupby('Genre')['My_Rating'].median().sort_values().index
-    
     fig_box = px.box(df_filtered, x="Genre", y="My_Rating", 
                      color="Genre", 
                      category_orders={"Genre": genre_order},
                      color_discrete_sequence=px.colors.qualitative.Bold)
-    
     fig_box.update_layout(
         plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
         font=dict(color='#888'),
@@ -316,11 +314,9 @@ with col_temp:
     st.markdown('<div class="chart-box">', unsafe_allow_html=True)
     
     daily_stats = df_filtered.groupby('Date').agg({'Title': 'count', 'Temp_C': 'mean'}).reset_index()
-    
     fig_scatter = px.scatter(daily_stats, x="Temp_C", y="Title", 
                              size="Title", color="Temp_C",
                              color_continuous_scale="Turbo")
-    
     fig_scatter.update_layout(
         plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
         font=dict(color='#888'),
@@ -331,50 +327,56 @@ with col_temp:
     st.plotly_chart(fig_scatter, use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-# --- DERNIERE SECTION : ABANDON & SAISONNALITÉ ---
-st.markdown("### 🧠 Advanced Metrics (The Hook & Seasons)")
+# --- DERNIERE SECTION : ABANDON (LOGIQUE CONSECUTIVE) & SAISONNALITÉ ---
+st.markdown("### 🧠 Advanced Metrics (Session Hook & Seasons)")
 col_hook, col_season = st.columns(2)
 
 with col_hook:
-    st.markdown("**Abandonment Rate by Genre** (Watch < 4 Eps)")
+    st.markdown("**Session Interruption Rate** (< 4 Eps Consecutive)")
     st.markdown('<div class="chart-box">', unsafe_allow_html=True)
     
-    # LOGIQUE ABANDON : On filtre sur les séries uniquement
-    series_df = df_filtered[df_filtered['Type'] == 'Series']
+    # LOGIQUE DE SESSION CONSECUTIVE
+    # 1. On filtre les séries
+    series_df = df_filtered[df_filtered['Type'] == 'Series'].copy()
     
-    # On compte les épisodes par Série
-    show_counts = series_df.groupby(['Genre', 'ShowName']).size().reset_index(name='EpisodeCount')
-    
-    # On définit "Abandonné" si moins de 4 épisodes vus
-    show_counts['Status'] = show_counts['EpisodeCount'].apply(lambda x: 'Abandoned' if x < 4 else 'Hooked')
-    
-    # On agrège par Genre
-    abandon_stats = show_counts.groupby(['Genre', 'Status']).size().reset_index(name='Count')
-    
-    fig_funnel = px.bar(abandon_stats, x="Genre", y="Count", color="Status",
-                        color_discrete_map={'Abandoned': '#E50914', 'Hooked': '#46d369'},
-                        barmode='stack')
-    
-    fig_funnel.update_layout(
-        plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
-        font=dict(color='#888'),
-        xaxis_title=None, legend=dict(orientation="h", y=1.1)
-    )
-    st.plotly_chart(fig_funnel, use_container_width=True)
+    if not series_df.empty:
+        # 2. On crée des "Blocs" consécutifs
+        # Si la ligne N a un nom différent de N-1, c'est un nouveau bloc
+        series_df['BlockID'] = (series_df['ShowName'] != series_df['ShowName'].shift()).cumsum()
+        
+        # 3. On compte la taille de chaque bloc
+        streak_stats = series_df.groupby(['Genre', 'BlockID']).size().reset_index(name='StreakLength')
+        
+        # 4. Définition du statut : Abandon/Interruption si < 4 épisodes à la suite
+        streak_stats['Status'] = streak_stats['StreakLength'].apply(lambda x: 'Interrupted (<4)' if x < 4 else 'Hooked (4+)')
+        
+        # 5. Agrégation pour le graphique
+        final_stats = streak_stats.groupby(['Genre', 'Status']).size().reset_index(name='Count')
+        
+        fig_funnel = px.bar(final_stats, x="Genre", y="Count", color="Status",
+                            color_discrete_map={'Interrupted (<4)': '#E50914', 'Hooked (4+)': '#46d369'},
+                            barmode='stack')
+        
+        fig_funnel.update_layout(
+            plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
+            font=dict(color='#888'),
+            xaxis_title=None, legend=dict(orientation="h", y=1.1, title=None)
+        )
+        st.plotly_chart(fig_funnel, use_container_width=True)
+    else:
+        st.info("No series data to analyze streaks.")
     st.markdown('</div>', unsafe_allow_html=True)
 
 with col_season:
     st.markdown("**Genre Seasonality (Percentage)**")
     st.markdown('<div class="chart-box">', unsafe_allow_html=True)
     
-    # On groupe par Saison et Genre
     season_stats = df_filtered.groupby(['Season', 'Genre']).size().reset_index(name='Count')
     
-    # Graphique en barres normalisé (100% Stacked)
     fig_season = px.bar(season_stats, x="Season", y="Count", color="Genre",
                         category_orders={"Season": ['❄️ Winter', '🌱 Spring', '☀️ Summer', '🍂 Autumn']},
                         color_discrete_sequence=px.colors.qualitative.Vivid,
-                        barmode="group") # ou 'stack' pour voir les parts
+                        barmode="group")
     
     fig_season.update_layout(
         plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
