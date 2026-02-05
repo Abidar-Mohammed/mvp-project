@@ -348,7 +348,7 @@ with col_hook:
         streak_stats = series_df.groupby(['Genre', 'BlockID']).size().reset_index(name='StreakLength')
         
         # 4. Définition du statut : Abandon/Interruption si < 4 épisodes à la suite
-        streak_stats['Status'] = streak_stats['StreakLength'].apply(lambda x: 'Interrupted (<4)' if x < 3 else 'Hooked (4+)')
+        streak_stats['Status'] = streak_stats['StreakLength'].apply(lambda x: 'Interrupted (<4)' if x < 2 else 'Hooked (4+)')
         
         # 5. Agrégation pour le graphique
         final_stats = streak_stats.groupby(['Genre', 'Status']).size().reset_index(name='Count')
@@ -423,4 +423,5 @@ with cl2:
         """, unsafe_allow_html=True)
 
 st.markdown("<br><center style='color:#555'>NETFLIX ANALYTICS • 2024</center>", unsafe_allow_html=True)
+
 
