@@ -1,1 +1,1 @@
-# mvp-project
+# visual analytics projet
