@@ -168,44 +168,44 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# --- METHODOLOGY SECTION (CONVERTIE EN MARKDOWN NATIF = 0 BUG) ---
+# --- METHODOLOGY SECTION (BULLET POINTS & HUMANIZED) ---
 with st.expander("🛠️ METHODOLOGY & DESIGN RATIONALE"):
     
     st.markdown("#### 1. DATA CONSTRUCTION & SOURCES")
     st.markdown("""
-    To create a truly comprehensive picture of my viewing habits, I constructed a dataset by merging **three distinct sources**.
-    First, I extracted the raw viewing logs directly from my **Netflix account** to get the precise history. 
-    However, watching is not enough; I wanted to include a qualitative dimension. I therefore cross-referenced these titles with my personal rating history on **IMDB** to reflect my appreciation of each content.
-    Finally, to contextualize these habits within my real environment, I enriched every single entry with historical weather data (Temperature, Precipitation) for **Paris**—the city where I live—using the Open-Meteo API to match the exact date of each viewing.
-    
-    Beyond raw data, I engineered specific metadata to deepen the analysis. I calculated *Seasonality* to see if my taste changes from Winter to Summer, and developed a specific logic for *Binge Streaks* to measure how many episodes I typically watch in a row before stopping.
+    To create a truly comprehensive picture of my viewing habits, I constructed this dataset by merging **three distinct sources**:
+    * **Netflix History:** I extracted the raw viewing logs directly from my account to get the precise timeline of what I watched.
+    * **IMDB Ratings:** Watching isn't enough, so I cross-referenced titles with my personal ratings to add a qualitative dimension (Did I like it?).
+    * **Paris Weather:** I enriched every entry with historical data (Temperature, Precipitation) from the *Open-Meteo API*, matching the exact dates I was in Paris.
+    * **Metadata Engineering:** I created specific metrics like *Seasonality* and *Binge Streak* (consecutive episodes) to deepen the analysis.
     """)
 
     st.markdown("#### 2. STRUCTURE & LAYOUT")
     st.markdown("""
-    I designed the dashboard structure to follow a logical analytical flow, moving from the general to the specific. 
-    It begins with high-level **KPIs** to give an immediate overview of volume and time. 
-    Then, we move to **temporal trends** and genre distribution to understand the "When" and "What".
-    The analysis then dives deeper into correlations (Weather vs. Content, Rating Psychology) to understand the "Why".
-    Finally, the dashboard concludes with granular lists of my Top and Flop contents.
-    I opted for a 2-column grid layout to balance information density with readability, optimizing screenspace without cluttering the view.
+    I designed the dashboard to follow a logical analytical flow, moving from the general to the specific:
+    * **Global KPIs:** I start with high-level metrics (Total Hours, Volume) for immediate insight.
+    * **Trends:** I then move to temporal analysis and genre distribution to understand the "When" and "What".
+    * **Deep Dive:** The analysis digs deeper into correlations (Weather vs. Content, Rating Psychology) to understand the "Why".
+    * **Granular Data:** Finally, I conclude with specific lists of my Top and Flop contents.
+    * **Grid System:** I opted for a 2-column layout to optimize screenspace without clustering the view.
     """)
 
     st.markdown("#### 3. VISUAL REPRESENTATIONS")
     st.markdown("""
-    Each chart was chosen to answer a specific question. 
-    I used **Scatter Plots** to detect subtle correlations between continuous variables like Temperature and viewing volume.
-    For ratings, I deliberately chose **Box Plots** over simple averages because they reveal the distribution and spread of my appreciation, showing clearly which genres are consistently liked versus those that are polarizing.
-    To visualize my activity hotspots across the week, a **Heatmap** was the most effective choice.
-    Lastly, the **Radar Chart** allows for a quick comparison of the multi-dimensional balance of my genre consumption.
+    Each chart was chosen to answer a specific question efficiently:
+    * **Scatter Plots:** Used to detect subtle correlations between continuous variables like Temperature and Viewing Volume.
+    * **Box Plots:** I chose them over simple averages to reveal the distribution of my ratings, showing clearly which genres are consistently liked vs. polarizing.
+    * **Heatmap:** Selected to instantly visualize my activity "hotspots" across the days of the week.
+    * **Radar Chart:** Efficiently displays the multi-dimensional balance of my genre consumption.
     """)
 
     st.markdown("#### 4. COLOR USE & AESTHETICS")
     st.markdown("""
-    The overall design adopts a **Cinematic Dark Mode** to mirror the aesthetic of the streaming platform itself. 
-    Regarding the color palette, I used :red[**Netflix Red**] for the primary branding. 
-    For data visualization, I employed semantic coloring to make the charts intuitive: :green[**Green**] naturally guides the eye to positive metrics (like high ratings), while :red[**Red**] signals negative ones (like low ratings or abandons). 
-    For the weather context, I used natural associations, such as sunny tones for clear days and cooler blue tones to represent rainy conditions.
+    The overall design mimics the streaming platform's environment:
+    * **Cinematic Dark Mode:** Adopts a dark background for visual comfort and immersion.
+    * **Brand Identity:** Uses :red[**Netflix Red**] for primary branding and emphasis.
+    * **Semantic Coloring:** I used :green[**Green**] for positive metrics (High ratings, Streaks) and :red[**Red**] for negative ones (Flops), guiding the eye intuitively.
+    * **Contextual Colors:** Natural associations were used for weather (Yellow=Sun, Blue=Rain).
     """)
 
 st.markdown("<br>", unsafe_allow_html=True)
