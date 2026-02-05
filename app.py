@@ -193,7 +193,7 @@ with st.sidebar:
 
 # --- 5. MAIN CONTENT ---
 
-# MAIN TITLE (MODIFIÉ)
+# MAIN TITLE
 st.markdown("""
     <div style="margin-bottom: 30px;">
         <h1 style="font-family: 'Bebas Neue'; font-size: 5rem; line-height:0.8; margin-bottom: 0;">
@@ -205,7 +205,7 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# METHODOLOGY (ICON: GEAR ⚙)
+# METHODOLOGY
 with st.expander("⚙ METHODOLOGY & DESIGN RATIONALE"):
     
     st.markdown("#### 1. DATA CONSTRUCTION & SOURCES")
@@ -398,4 +398,4 @@ with cl2:
             <div style="background:#E50914; color:#fff; padding:5px 10px; border-radius:6px; font-weight:bold; font-size:1.2rem;">{r['My_Rating']}</div>
         </div>""", unsafe_allow_html=True)
 
-st.markdown("<br><br><center style='color:#555; font-family:Outfit;'>DESIGNED FOR DATA SCIENCE PROJECT • 2024</center>", unsafe_allow_html=True)
+st.markdown("<br><br><center style='color:#555; font-family:Outfit;'>NETFLIX WATCH HISTORY ANALYTICS • 2024-2025</center>", unsafe_allow_html=True)
