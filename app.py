@@ -6,28 +6,28 @@ import numpy as np
 import random
 import os
 
-# --- 1. PAGE CONFIGURATION ---
+# --- 1. CONFIGURATION DE LA PAGE ---
 st.set_page_config(
-    page_title="Netflix Analytics | Deep Dive",
+    page_title="Netflix Analytics | Ultimate",
     page_icon="🎬",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. PREMIUM COLORFUL CSS ---
+# --- 2. CSS PREMIUM (HYBRIDE : COLORÉ + B&W POUR METHODOLOGIE) ---
 st.markdown("""
 <style>
     /* IMPORT FONTS */
     @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Bebas+Neue&display=swap');
 
-    /* BACKGROUND */
+    /* BACKGROUND GLOBAL (Coloré & Sombre) */
     .stApp {
         background-color: #0a0a0a;
-        background-image: radial-gradient(circle at 50% 0%, #1a0000, #0a0a0a 70%);
+        background-image: radial-gradient(circle at 50% 0%, #2a0000, #0a0a0a 60%);
         color: #e0e0e0;
     }
 
-    /* TYPOGRAPHY */
+    /* TYPOGRAPHIE */
     h1, h2, h3 { font-family: 'Outfit', sans-serif; font-weight: 600; }
     
     .netflix-font {
@@ -37,7 +37,7 @@ st.markdown("""
         text-shadow: 0 0 20px rgba(229, 9, 20, 0.6);
     }
 
-    /* KPI CARDS */
+    /* KPI CARDS (Verre Fumé Coloré) */
     .kpi-card {
         background: rgba(30, 30, 30, 0.4);
         backdrop-filter: blur(12px);
@@ -62,17 +62,27 @@ st.markdown("""
         box-shadow: 0 4px 20px rgba(0,0,0,0.3);
     }
 
-    /* METHODOLOGY SECTION (Black & White) */
+    /* --- ZONE METHODOLOGIE (NOIR & BLANC STRICT) --- */
     .methodology-container {
         background: #111 !important;
         border: 1px solid #333 !important;
-        padding: 20px;
+        padding: 25px;
         border-radius: 8px;
         color: #ccc !important;
         font-family: 'Outfit', sans-serif;
     }
-    .methodology-container h4 { color: #fff !important; border-bottom: 1px solid #333; padding-bottom: 5px; margin-top: 15px; }
-    .streamlit-expanderHeader { background-color: #222 !important; color: #fff !important; border-radius: 8px !important; }
+    .methodology-container h4 { 
+        color: #fff !important; 
+        border-bottom: 1px solid #333; 
+        padding-bottom: 5px; 
+        margin-top: 15px; 
+        font-family: 'Outfit', sans-serif;
+    }
+    .streamlit-expanderHeader { 
+        background-color: #1a1a1a !important; 
+        color: #fff !important; 
+        border: 1px solid #333; 
+    }
 
     /* LIST CARDS */
     .list-card {
@@ -106,18 +116,25 @@ def load_data():
             t = str(row['Title']).lower()
             g = str(row.get('Genre', '')).lower()
             is_show = 'saison' in t or 'season' in t or 'episode' in t or ':' in t
+            
+            # Duration logic
             if not is_show: duration = 105
             elif 'anime' in g: duration = 24
             elif 'comedy' in g: duration = 22
             else: duration = 50
+            
             return pd.Series([duration, 'Series' if is_show else 'Movie'])
 
         if 'Genre' not in df.columns: df['Genre'] = 'Drama'
+        
+        # Apply Metadata
         df[['Duration_Mins', 'Type']] = df.apply(get_metadata, axis=1)
         
+        # Fallbacks for robustness
         if 'My_Rating' not in df.columns: df['My_Rating'] = np.random.randint(5, 11, size=len(df))
         if 'Weather' not in df.columns: df['Weather'] = 'Sunny'
         
+        # Time features
         df['MonthYear'] = df['Date'].dt.to_period('M').astype(str)
         df['DayOfWeek'] = df['Date'].dt.day_name()
         return df
@@ -150,6 +167,7 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
+# --- METHODOLOGY (BLACK & WHITE) ---
 with st.expander("🛠️ TECHNICAL METHODOLOGY"):
     st.markdown("""
     <div class="methodology-container">
@@ -192,7 +210,7 @@ col1, col2 = st.columns([2, 1])
 with col1:
     st.markdown("**Does Duration Affect My Rating? (Scatter Analysis)**")
     st.markdown('<div class="chart-box">', unsafe_allow_html=True)
-    # Scatter: Duration vs Rating colored by Type
+    # Scatter: Duration vs Rating colored by Type 
     fig_scatter = px.scatter(df_filtered, x="Duration_Mins", y="My_Rating", 
                              color="Genre", size="My_Rating", 
                              hover_data=['Title'],
@@ -210,12 +228,12 @@ with col1:
 with col2:
     st.markdown("**Mood Monitor (Avg Rating by Day)**")
     st.markdown('<div class="chart-box">', unsafe_allow_html=True)
-    # Heatmap like logic but simple bar
+    # Average rating per day of week
     days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
     mood_data = df_filtered.groupby('DayOfWeek')['My_Rating'].mean().reindex(days).reset_index()
     
     fig_mood = px.bar(mood_data, x="DayOfWeek", y="My_Rating", 
-                      color="My_Rating", color_continuous_scale="RdYlGn") # Red to Green
+                      color="My_Rating", color_continuous_scale="RdYlGn") # Red (Low) to Green (High)
     fig_mood.update_layout(
         plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
         font=dict(color='#888'),
@@ -233,7 +251,10 @@ c_sun, c_box = st.columns([1, 2])
 with c_sun:
     st.markdown("**Content DNA (Type > Genre)**")
     st.markdown('<div class="chart-box">', unsafe_allow_html=True)
-    # SUNBURST CHART
+    # SUNBURST CHART 
+
+[Image of Sunburst Chart]
+
     fig_sun = px.sunburst(df_filtered, path=['Type', 'Genre'], values='Duration_Mins',
                           color='Genre', color_discrete_sequence=px.colors.qualitative.Pastel)
     fig_sun.update_layout(
@@ -252,7 +273,7 @@ with c_box:
     
     fig_box = px.box(daily_vol, x="Weather", y="DailyCount", color="Weather",
                      color_discrete_map={'Sunny': '#F5D300', 'Cloudy': '#888', 'Rainy': '#2255AA', 'Snowy': '#FFF', 'Foggy': '#555'},
-                     points="all") # Show all points
+                     points="all") 
     fig_box.update_layout(
         plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
         font=dict(color='#888'),
