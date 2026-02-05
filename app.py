@@ -252,7 +252,7 @@ with st.expander("🛠️ METHODOLOGY & DESIGN RATIONALE"):
         </ul>
         </p>
     </div>
-    """, unsafe_allow_html=True) # ✅ FIXED HERE
+    """, unsafe_allow_html=True) # ✅ C'EST ICI LA CORRECTION
 
 st.markdown("<br>", unsafe_allow_html=True)
 
