@@ -88,24 +88,33 @@ def load_data():
         
         df = df.dropna(subset=['Date'])
 
+        # Réparations basiques
         if 'Genre' not in df.columns: df['Genre'] = 'Drama'
         if 'My_Rating' not in df.columns: df['My_Rating'] = np.random.randint(5, 11, size=len(df))
         if 'Weather' not in df.columns: df['Weather'] = 'Sunny'
         if 'Temp_C' not in df.columns: df['Temp_C'] = 15
 
-        def get_duration(row):
+        # Calcul Durée & Type
+        def get_metadata(row):
             t = str(row.get('Title', '')).lower()
             g = str(row.get('Genre', '')).lower()
             is_show = 'saison' in t or 'season' in t or 'episode' in t or ':' in t
             
-            if not is_show: return 105 
-            if 'anime' in g: return 24
-            if 'comedy' in g: return 22
-            return 50 
+            if not is_show: return pd.Series([105, 'Movie']) # Film
+            if 'anime' in g: return pd.Series([24, 'Series'])
+            if 'comedy' in g: return pd.Series([22, 'Series'])
+            return pd.Series([50, 'Series'])
 
-        if 'Duration_Mins' not in df.columns:
-            df['Duration_Mins'] = df.apply(get_duration, axis=1)
-            df['Type'] = df['Title'].apply(lambda x: 'Series' if ('Saison' in str(x) or ':' in str(x)) else 'Movie')
+        if 'Duration_Mins' not in df.columns or 'Type' not in df.columns:
+            df[['Duration_Mins', 'Type']] = df.apply(get_metadata, axis=1)
+
+        # Extraction Nom Série (Pour le taux d'abandon)
+        # On prend tout ce qui est avant le premier ":"
+        def get_show_name(row):
+            if row['Type'] == 'Movie': return row['Title']
+            return row['Title'].split(':')[0]
+        
+        df['ShowName'] = df.apply(get_show_name, axis=1)
 
         return df
 
@@ -126,6 +135,15 @@ if 'Month' not in df.columns:
     df['Month'] = df['Date'].dt.month_name()
 if 'DayOfWeek' not in df.columns:
     df['DayOfWeek'] = df['Date'].dt.day_name()
+
+# Fonction pour la saisonnalité
+def get_season(month_idx):
+    if month_idx in [12, 1, 2]: return '❄️ Winter'
+    elif month_idx in [3, 4, 5]: return '🌱 Spring'
+    elif month_idx in [6, 7, 8]: return '☀️ Summer'
+    else: return '🍂 Autumn'
+
+df['Season'] = df['Date'].dt.month.apply(get_season)
 
 # --- 5. SIDEBAR FILTRES ---
 with st.sidebar:
@@ -155,8 +173,11 @@ with st.expander("🛠️ TECHNICAL METHODOLOGY"):
     st.markdown("""
     <div style="background:#111; padding:15px; border-radius:8px; color:#ccc; font-size:0.9rem;">
         <p><strong>1. Data Ingestion:</strong> Parsing viewing history from Netflix CSV export.</p>
-        <p><strong>2. Enrichment:</strong> Merging with Open-Meteo API (Historical Weather for Paris) and estimating content metadata (Duration/Genre).</p>
-        <p><strong>3. Tech Stack:</strong> Python, Pandas, Streamlit & Plotly.</p>
+        <p><strong>2. Enrichment:</strong> Merging with Open-Meteo API (Historical Weather for Paris) and estimating content metadata.</p>
+        <p><strong>3. Advanced Metrics:</strong> 
+           <br>- <em>Hook Rate:</em> Calculated by grouping viewings by Show Name. Shows with < 4 episodes watched are considered 'Abandoned'.
+           <br>- <em>Seasonality:</em> Grouping timestamps by meteorological seasons.
+        </p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -240,7 +261,7 @@ with c_type:
         st.write("Data Type missing")
     st.markdown('</div>', unsafe_allow_html=True)
 
-# ROW 3: CONTEXT
+# ROW 3: CONTEXT ANALYSIS
 st.markdown("### 🌪️ Context Analysis")
 c_w1, c_w2 = st.columns(2)
 
@@ -271,15 +292,14 @@ with col_rate:
     st.markdown("**Rating Spread by Genre (Box Plot)**")
     st.markdown('<div class="chart-box">', unsafe_allow_html=True)
     
-    # BOX PLOT: C'est ici le changement majeur
-    # On trie les genres par médiane pour voir rapidement ceux qu'on déteste (en bas) vs ceux qu'on aime (en haut)
+    # BOX PLOT
     genre_order = df_filtered.groupby('Genre')['My_Rating'].median().sort_values().index
     
     fig_box = px.box(df_filtered, x="Genre", y="My_Rating", 
                      color="Genre", 
                      category_orders={"Genre": genre_order},
                      color_discrete_sequence=px.colors.qualitative.Bold)
-                     
+    
     fig_box.update_layout(
         plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
         font=dict(color='#888'),
@@ -311,7 +331,60 @@ with col_temp:
     st.plotly_chart(fig_scatter, use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-# --- DERNIERE SECTION : TOP & FLOP ---
+# --- DERNIERE SECTION : ABANDON & SAISONNALITÉ ---
+st.markdown("### 🧠 Advanced Metrics (The Hook & Seasons)")
+col_hook, col_season = st.columns(2)
+
+with col_hook:
+    st.markdown("**Abandonment Rate by Genre** (Watch < 4 Eps)")
+    st.markdown('<div class="chart-box">', unsafe_allow_html=True)
+    
+    # LOGIQUE ABANDON : On filtre sur les séries uniquement
+    series_df = df_filtered[df_filtered['Type'] == 'Series']
+    
+    # On compte les épisodes par Série
+    show_counts = series_df.groupby(['Genre', 'ShowName']).size().reset_index(name='EpisodeCount')
+    
+    # On définit "Abandonné" si moins de 4 épisodes vus
+    show_counts['Status'] = show_counts['EpisodeCount'].apply(lambda x: 'Abandoned' if x < 4 else 'Hooked')
+    
+    # On agrège par Genre
+    abandon_stats = show_counts.groupby(['Genre', 'Status']).size().reset_index(name='Count')
+    
+    fig_funnel = px.bar(abandon_stats, x="Genre", y="Count", color="Status",
+                        color_discrete_map={'Abandoned': '#E50914', 'Hooked': '#46d369'},
+                        barmode='stack')
+    
+    fig_funnel.update_layout(
+        plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
+        font=dict(color='#888'),
+        xaxis_title=None, legend=dict(orientation="h", y=1.1)
+    )
+    st.plotly_chart(fig_funnel, use_container_width=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+with col_season:
+    st.markdown("**Genre Seasonality (Percentage)**")
+    st.markdown('<div class="chart-box">', unsafe_allow_html=True)
+    
+    # On groupe par Saison et Genre
+    season_stats = df_filtered.groupby(['Season', 'Genre']).size().reset_index(name='Count')
+    
+    # Graphique en barres normalisé (100% Stacked)
+    fig_season = px.bar(season_stats, x="Season", y="Count", color="Genre",
+                        category_orders={"Season": ['❄️ Winter', '🌱 Spring', '☀️ Summer', '🍂 Autumn']},
+                        color_discrete_sequence=px.colors.qualitative.Vivid,
+                        barmode="group") # ou 'stack' pour voir les parts
+    
+    fig_season.update_layout(
+        plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
+        font=dict(color='#888'),
+        xaxis_title=None, legend=dict(orientation="h", y=1.1, title=None)
+    )
+    st.plotly_chart(fig_season, use_container_width=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# --- TOP & FLOP ---
 st.markdown("### 🏆 Hall of Fame vs Wall of Shame")
 cl1, cl2 = st.columns(2)
 
