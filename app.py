@@ -133,10 +133,12 @@ def load_data():
         # Fallbacks for robustness
         if 'My_Rating' not in df.columns: df['My_Rating'] = np.random.randint(5, 11, size=len(df))
         if 'Weather' not in df.columns: df['Weather'] = 'Sunny'
+        if 'Temp_C' not in df.columns: df['Temp_C'] = 15
         
         # Time features
         df['MonthYear'] = df['Date'].dt.to_period('M').astype(str)
         df['DayOfWeek'] = df['Date'].dt.day_name()
+        df['Month'] = df['Date'].dt.month_name() # Needed for Heatmap
         return df
 
     except Exception as e:
@@ -190,7 +192,7 @@ st.markdown("<br>", unsafe_allow_html=True)
 total_h = int(df_filtered['Duration_Mins'].sum() / 60)
 nb_t = len(df_filtered)
 avg_r = df_filtered['My_Rating'].mean()
-fav_g = df_filtered['Genre'].mode()[0]
+fav_g = df_filtered['Genre'].mode()[0] if not df_filtered.empty else "N/A"
 
 c1, c2, c3, c4 = st.columns(4)
 def kpi(col, t, v, s):
@@ -203,14 +205,14 @@ kpi(c4, "Top Genre", fav_g.upper(), "Most Frequent")
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# --- ROW 1: RATING PSYCHOLOGY (NEW!) ---
+# --- ROW 1: RATING PSYCHOLOGY ---
 st.markdown("### 🧠 Rating Psychology")
 col1, col2 = st.columns([2, 1])
 
 with col1:
     st.markdown("**Does Duration Affect My Rating? (Scatter Analysis)**")
     st.markdown('<div class="chart-box">', unsafe_allow_html=True)
-    # Scatter: Duration vs Rating colored by Type 
+    # Scatter: Duration vs Rating colored by Genre
     fig_scatter = px.scatter(df_filtered, x="Duration_Mins", y="My_Rating", 
                              color="Genre", size="My_Rating", 
                              hover_data=['Title'],
@@ -230,6 +232,7 @@ with col2:
     st.markdown('<div class="chart-box">', unsafe_allow_html=True)
     # Average rating per day of week
     days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+    # Sécurisation du groupby
     mood_data = df_filtered.groupby('DayOfWeek')['My_Rating'].mean().reindex(days).reset_index()
     
     fig_mood = px.bar(mood_data, x="DayOfWeek", y="My_Rating", 
@@ -251,10 +254,7 @@ c_sun, c_box = st.columns([1, 2])
 with c_sun:
     st.markdown("**Content DNA (Type > Genre)**")
     st.markdown('<div class="chart-box">', unsafe_allow_html=True)
-    # SUNBURST CHART 
-
-[Image of Sunburst Chart]
-
+    # SUNBURST CHART
     fig_sun = px.sunburst(df_filtered, path=['Type', 'Genre'], values='Duration_Mins',
                           color='Genre', color_discrete_sequence=px.colors.qualitative.Pastel)
     fig_sun.update_layout(
