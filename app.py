@@ -105,7 +105,7 @@ st.markdown("""
 @st.cache_data
 def load_data():
     # 👇👇👇 TON LIEN GITHUB ICI 👇👇👇
-    GITHUB_URL = "https://raw.githubusercontent.com/Abidar-Mohammed/mvp-project/main/NetflixHistory3.csv"
+    GITHUB_URL = "https://raw.githubusercontent.com/Abidar-Mohammed/mvp-project/main/NetflixHistory4.csv"
     
     try:
         try:
@@ -348,4 +348,5 @@ with col_list2:
             </div>
         </div>
         """, unsafe_allow_html=True)
+
 
