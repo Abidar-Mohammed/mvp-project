@@ -42,7 +42,7 @@ st.markdown("""
 @st.cache_data
 def load_data_from_github():
     # 👇 REMPLACE PAR TON LIEN RAW GITHUB 👇
-    GITHUB_URL = "https://raw.githubusercontent.com/VOTRE_NOM/VOTRE_REPO/main/NetflixHistory.csv"
+    GITHUB_URL = "https://raw.githubusercontent.com/VOTRE_NOM/VOTRE_REPO/main/NetflixHistory2.csv"
     
     try:
         df = pd.read_csv(GITHUB_URL)
@@ -196,3 +196,4 @@ with col_flop:
     st.markdown("<h4 style='color:#E50914'>🍅 TOP 5 NAVETS</h4>", unsafe_allow_html=True)
     for _, row in df_filtered.sort_values('My_Rating', ascending=True).drop_duplicates('Title').head(5).iterrows():
         st.markdown(f"<div style='background:#111; padding:10px; margin-bottom:5px; border-left:4px solid #E50914;'><b>{row['Title']}</b> <span style='float:right; color:#E50914'>{row['My_Rating']}/10</span><br><small style='color:#666'>{row['Genre']}</small></div>", unsafe_allow_html=True)
+
