@@ -8,89 +8,96 @@ import os
 
 # --- 1. PAGE CONFIGURATION ---
 st.set_page_config(
-    page_title="Netflix Analytics | Director's Cut",
+    page_title="Netflix Analytics | Premium Color",
     page_icon="🎬",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. ULTRA-PREMIUM CSS (MONOCHROME & CINEMATIC) ---
+# --- 2. PREMIUM COLORFUL CSS ---
 st.markdown("""
 <style>
-    /* FONTS */
-    @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600&family=Bebas+Neue&display=swap');
+    /* IMPORT FONTS */
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Bebas+Neue&display=swap');
 
-    /* BACKGROUND */
+    /* BACKGROUND (Colorful Dark) */
     .stApp {
-        background-color: #000000;
-        background-image: linear-gradient(180deg, rgba(0,0,0,1) 0%, rgba(20,20,20,1) 100%);
+        background-color: #0a0a0a;
+        background-image: radial-gradient(circle at 50% 0%, #2a0000, #0a0a0a 60%);
         color: #e0e0e0;
     }
 
     /* TYPOGRAPHY */
-    h1, h2, h3 { font-family: 'Manrope', sans-serif; letter-spacing: -0.5px; color: #fff; }
+    h1, h2, h3 { font-family: 'Outfit', sans-serif; font-weight: 600; }
     
-    .netflix-logo {
+    .netflix-font {
         font-family: 'Bebas Neue', sans-serif;
-        font-size: 5rem;
-        color: #000;
-        -webkit-text-stroke: 2px #E5E5E5; /* Contour Blanc/Argent */
-        letter-spacing: 4px;
-        text-shadow: 0px 0px 10px rgba(255, 255, 255, 0.2);
-        line-height: 1;
-    }
-    
-    .subtitle {
-        font-family: 'Manrope', sans-serif;
-        color: #888;
-        font-size: 1.1rem;
-        letter-spacing: 1px;
-        text-transform: uppercase;
+        letter-spacing: 2px;
+        color: #E50914;
+        text-shadow: 0 0 15px rgba(229, 9, 20, 0.4);
     }
 
-    /* KPI CARDS (FROSTED GLASS MONOCHROME) */
+    /* KPI CARDS (Colorful Glass) */
     .kpi-card {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 12px;
-        padding: 24px;
-        transition: all 0.3s ease;
+        background: rgba(30, 30, 30, 0.4);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        padding: 20px;
+        transition: transform 0.3s ease, border-color 0.3s ease;
     }
-    .kpi-card:hover {
-        background: rgba(255, 255, 255, 0.08);
-        border-color: #fff;
-        transform: translateY(-5px);
-    }
-    .kpi-title { font-size: 0.8rem; color: #666; text-transform: uppercase; letter-spacing: 1px; }
-    .kpi-value { font-family: 'Bebas Neue', sans-serif; font-size: 3rem; color: #fff; margin: 8px 0; }
-    .kpi-sub { font-size: 0.8rem; color: #aaa; border-top: 1px solid #333; padding-top: 8px; margin-top: 8px;}
+    .kpi-card:hover { transform: translateY(-5px); border-color: #E50914; }
+    .kpi-title { font-family: 'Outfit', sans-serif; font-size: 0.85rem; color: #aaa; text-transform: uppercase; }
+    .kpi-value { font-family: 'Bebas Neue', sans-serif; font-size: 2.8rem; color: #fff; margin-top: 5px; }
+    .kpi-sub { font-size: 0.8rem; color: #46d369; }
 
     /* CHARTS CONTAINER */
     .chart-box {
-        background: #080808;
+        background: rgba(20, 20, 20, 0.5);
         border-radius: 16px;
-        padding: 24px;
-        border: 1px solid #222;
-        margin-bottom: 24px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    }
-    
-    /* METHODOLOGY SECTION */
-    .methodology-box {
-        border-left: 3px solid #E5E5E5;
-        padding-left: 20px;
-        margin: 20px 0;
-        background: linear-gradient(90deg, rgba(255,255,255,0.03) 0%, rgba(0,0,0,0) 100%);
+        padding: 20px;
+        border: 1px solid rgba(255,255,255,0.05);
+        margin-bottom: 20px;
     }
 
+    /* --- METHODOLOGY SPECIFIC (BLACK & WHITE) --- */
+    .methodology-container {
+        background: #111 !important; /* Fond noir strict */
+        border: 1px solid #333 !important;
+        padding: 20px;
+        border-radius: 8px;
+        color: #ccc !important; /* Texte gris neutre */
+        font-family: 'Outfit', sans-serif;
+    }
+    .methodology-container h4 {
+        color: #fff !important; /* Titres blancs */
+        border-bottom: 1px solid #333;
+        padding-bottom: 5px;
+        margin-top: 15px;
+    }
+    .methodology-container li, .methodology-container p {
+        color: #aaa !important;
+    }
+    /* Style de l'expander Streamlit pour coller au B&W */
+    .streamlit-expanderHeader {
+        background-color: #222 !important;
+        color: #fff !important;
+        border-radius: 8px !important;
+    }
+
+    /* LIST CARDS (Colorful) */
+    .list-card {
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 8px; padding: 12px; margin-bottom: 8px;
+        border-left: 3px solid #333; display: flex; justify-content: space-between; align-items: center;
+    }
+    .list-card.top { border-left-color: #46d369; }
+    .list-card.flop { border-left-color: #E50914; }
+
     /* HIDE DEFAULTS */
-    #MainMenu {visibility: hidden;} footer {visibility: hidden;}
     div[data-testid="stMetric"] { display: none; }
-    
-    /* SCROLLBAR */
-    ::-webkit-scrollbar { width: 8px; }
-    ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: #555; }
+    #MainMenu {visibility: hidden;} footer {visibility: hidden;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -98,253 +105,159 @@ st.markdown("""
 @st.cache_data
 def load_data():
     GITHUB_URL = "https://raw.githubusercontent.com/Abidar-Mohammed/mvp-project/main/NetflixHistory4.csv"
-    
     try:
-        try:
-            df = pd.read_csv(GITHUB_URL)
-        except:
+        try: df = pd.read_csv(GITHUB_URL)
+        except: 
             if os.path.exists("NetflixHistory.csv"): df = pd.read_csv("NetflixHistory.csv")
             else: return pd.DataFrame()
 
-        # Date Parsing
         df['Date'] = pd.to_datetime(df['Date'], format="%d/%m/%Y", errors='coerce')
         if df['Date'].isna().all(): df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
 
-        # Advanced Enrichment
         def get_metadata(row):
             t = str(row['Title']).lower()
             g = str(row.get('Genre', '')).lower()
             is_show = 'saison' in t or 'season' in t or 'episode' in t or ':' in t
-            
-            # Duration Estimation
-            if not is_show: duration = 110 # Movie
+            if not is_show: duration = 105
             elif 'anime' in g: duration = 24
             elif 'comedy' in g: duration = 22
-            else: duration = 50 # Drama
-            
-            return pd.Series([duration, 'Series' if is_show else 'Movie'])
+            else: duration = 50
+            return duration
 
         if 'Genre' not in df.columns: df['Genre'] = 'Drama'
-        
-        # Apply Logic
-        df[['Duration_Mins', 'Type']] = df.apply(get_metadata, axis=1)
-
-        # Fallbacks
+        df['Duration_Mins'] = df.apply(get_metadata, axis=1)
         if 'My_Rating' not in df.columns: df['My_Rating'] = np.random.randint(5, 11, size=len(df))
         if 'Weather' not in df.columns: df['Weather'] = 'Sunny'
-        if 'Temp_C' not in df.columns: df['Temp_C'] = 15
-
-        # Time Features
-        df['YearMonth'] = df['Date'].dt.to_period('M').astype(str)
+        
+        df['MonthYear'] = df['Date'].dt.to_period('M').astype(str)
         df['Month'] = df['Date'].dt.month_name()
         df['DayOfWeek'] = df['Date'].dt.day_name()
-        
         return df
 
     except Exception as e:
-        st.error(f"Engine Failure: {e}")
+        st.error(f"Data Error: {e}")
         return pd.DataFrame()
 
 df = load_data()
+if df.empty: st.stop()
 
-if df.empty:
-    st.error("🚨 System Error: Data source unreachable.")
-    st.stop()
-
-# --- 4. SIDEBAR (MONOCHROME BRANDING) ---
+# --- 4. SIDEBAR ---
 with st.sidebar:
-    st.markdown("""
-    <div style="text-align: center; margin-bottom: 40px;">
-        <h1 style="font-family: 'Bebas Neue'; font-size: 3.5rem; color: #fff; margin:0; letter-spacing: 2px;">NETFLIX</h1>
-        <p style="font-size: 0.8rem; color: #666; letter-spacing: 3px; margin-top: -15px;">INTELLIGENCE</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    min_date, max_date = df['Date'].min().date(), df['Date'].max().date()
-    date_range = st.slider("Timeline", min_date, max_date, (min_date, max_date))
-    
-    genres = sorted(df['Genre'].astype(str).unique())
-    selected_genres = st.multiselect("Genre Filter", genres, default=genres)
-    
-    mask = (df['Date'].dt.date >= date_range[0]) & (df['Date'].dt.date <= date_range[1])
-    if selected_genres: mask = mask & (df['Genre'].isin(selected_genres))
+    st.markdown("<h1 style='color:#E50914; font-family: Bebas Neue; font-size: 3rem; text-align:center;'>N <span style='color:white'>DATA</span></h1>", unsafe_allow_html=True)
+    st.markdown("---")
+    min_d, max_d = df['Date'].min().date(), df['Date'].max().date()
+    dr = st.slider("📅 Timeline", min_d, max_d, (min_d, max_d))
+    gs = sorted(df['Genre'].astype(str).unique())
+    sg = st.multiselect("🎭 Genres", gs, default=gs)
+    mask = (df['Date'].dt.date >= dr[0]) & (df['Date'].dt.date <= dr[1])
+    if sg: mask = mask & (df['Genre'].isin(sg))
     df_filtered = df[mask]
 
-# --- 5. MAIN INTERFACE ---
+# --- 5. MAIN DASHBOARD ---
 
-# HERO SECTION
+# HEADER
 st.markdown("""
-    <div style="padding: 40px 0;">
-        <div class="netflix-logo">NETFLIX</div>
-        <div class="subtitle">VIEWING DATA & BEHAVIORAL SCIENCE</div>
+    <div style="margin-bottom: 20px;">
+        <h1 class="netflix-font" style="font-size: 4rem; margin-bottom: 0;">MY VIEWING HISTORY</h1>
+        <p style="color: #888; font-size: 1.1rem;">Cinematic data analysis & behavioral patterns.</p>
     </div>
 """, unsafe_allow_html=True)
 
-# METHODOLOGY (TECHNICAL DETAILS)
-with st.expander("🛠️ ENGINEERING & DATA METHODOLOGY"):
+# --- METHODOLOGY (BLACK & WHITE SECTION) ---
+with st.expander("🛠️ TECHNICAL METHODOLOGY (CLICK TO EXPAND)"):
     st.markdown("""
-    <div class="methodology-box">
-        <h4>1. DATA EXTRACTION & INGESTION</h4>
-        <p style="color:#aaa; font-size:0.9rem;">
-        The dataset is constructed from a raw export of the Netflix viewing history (CSV). 
-        A Python ETL pipeline was used to parse the unstructured titles using Regex to differentiate between 
-        <em>Standalone Movies</em> and <em>Episodic Content</em> (Season/Episode detection).
-        </p>
+    <div class="methodology-container">
+        <h4>1. DATA INGESTION PIPELINE</h4>
+        <p>Raw viewing history is extracted from Netflix (CSV format containing Title & Date). A Python script processes this data to distinguish between movies and episodic content based on title patterns.</p>
         
-        <h4>2. ENRICHMENT & API INTEGRATION</h4>
-        <p style="color:#aaa; font-size:0.9rem;">
-        To provide context, the dataset was enriched with external signals:
-        <ul style="margin-top:5px;">
-            <li><strong>Meteorological Data:</strong> Historical weather data (Precipitation, Temperature, Cloud Cover) was fetched via the <em>Open-Meteo API</em> for the geolocation: Paris, FR.</li>
-            <li><strong>Metadata Estimation:</strong> Runtime durations are estimated based on genre averages (e.g., Anime=24m, Sitcom=22m).</li>
-            <li><strong>Sentiment Analysis:</strong> Personal ratings (1-10) were mapped to simulate user preference curves.</li>
+        <h4>2. ENRICHMENT VIA APIs & LOGIC</h4>
+        <ul>
+            <li><strong>Weather Data:</strong> Historical conditions (Temp, Precipitation) retrieved via Open-Meteo API for Paris location.</li>
+            <li><strong>Duration Estimation:</strong> Logic-based assignment (e.g., Anime=24m, Sitcom=22m, Drama=50m, Movie=105m).</li>
+            <li><strong>Quality Scoring:</strong> Simulation of user ratings (1-10 scale) to analyze content quality preferences.</li>
         </ul>
-        </p>
-
+        
         <h4>3. VISUALIZATION STACK</h4>
-        <p style="color:#aaa; font-size:0.9rem;">
-        Dashboard rendered using <strong>Streamlit</strong> with a custom CSS layer for the <em>Dark Cinematic</em> aesthetic. 
-        Charts are powered by <strong>Plotly Graph Objects</strong> for high-performance interactivity.
-        </p>
+        <p>Built with Streamlit and Plotly for interactive, high-performance data visualization.</p>
     </div>
     """, unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# GLOBAL STATS
+# GLOBAL STATS (COLORFUL)
 total_h = int(df_filtered['Duration_Mins'].sum() / 60)
-nb_shows = len(df_filtered)
+nb_t = len(df_filtered)
 avg_r = df_filtered['My_Rating'].mean()
-fav_genre = df_filtered['Genre'].mode()[0]
+fav_g = df_filtered['Genre'].mode()[0]
 
 c1, c2, c3, c4 = st.columns(4)
-def kpi(col, title, val, sub):
-    col.markdown(f"""
-    <div class="kpi-card">
-        <div class="kpi-title">{title}</div>
-        <div class="kpi-value">{val}</div>
-        <div class="kpi-sub">{sub}</div>
-    </div>""", unsafe_allow_html=True)
+def kpi(col, t, v, s):
+    col.markdown(f"""<div class="kpi-card"><div class="kpi-title">{t}</div><div class="kpi-value">{v}</div><div class="kpi-sub">{s}</div></div>""", unsafe_allow_html=True)
 
-kpi(c1, "Total Watch Time", f"{total_h}h", "Cumulative duration")
-kpi(c2, "Content Consumed", f"{nb_shows}", "Episodes & Movies")
-kpi(c3, "Quality Score", f"{avg_r:.1f}", "Average User Rating")
-kpi(c4, "Top Genre", fav_genre.upper(), "Most frequent category")
+kpi(c1, "Total Hours", f"{total_h}h", "Cumulative Time")
+kpi(c2, "Titles Watched", f"{nb_t}", "Movies & Episodes")
+kpi(c3, "Avg Rating", f"{avg_r:.1f}/10", "Quality Score")
+kpi(c4, "Top Genre", fav_g.upper(), "Most Frequent")
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# --- DEEP DIVE DASHBOARDS ---
-
-# ROW 1: ACTIVITY & RATING DISTRIBUTION
+# ROW 1: ACTIVITY & RATINGS (COLORFUL)
 col1, col2 = st.columns([2, 1])
 
 with col1:
-    st.markdown("### 📊 VOLUME OVER TIME")
+    st.markdown("### 📈 Monthly Activity")
     st.markdown('<div class="chart-box">', unsafe_allow_html=True)
-    monthly = df_filtered.groupby('YearMonth')['Title'].count().reset_index()
-    monthly['YearMonth'] = monthly['YearMonth'].astype(str)
-    
-    fig = px.bar(monthly, x='YearMonth', y='Title', color_discrete_sequence=['#E5E5E5'])
-    fig.update_layout(
-        plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
-        font=dict(color='#666', family="Manrope"),
-        xaxis_title=None, yaxis_title="Items",
-        margin=dict(l=0, r=0, t=0, b=0),
-        bargap=0.2
-    )
-    fig.update_traces(marker_color='#fff', opacity=0.8)
+    monthly = df_filtered.groupby('MonthYear')['Title'].count().reset_index()
+    fig = px.bar(monthly, x='MonthYear', y='Title', color_discrete_sequence=['#E50914'])
+    fig.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', font=dict(color='#888', family="Outfit"), xaxis_title=None, yaxis_title="Items", margin=dict(l=0,r=0,t=10,b=0))
     st.plotly_chart(fig, use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
 with col2:
-    st.markdown("### ⭐ RATING BY GENRE")
+    st.markdown("### ⭐ Rating Distribution")
     st.markdown('<div class="chart-box">', unsafe_allow_html=True)
-    # Average rating by genre
-    genre_rating = df_filtered.groupby('Genre')['My_Rating'].mean().reset_index().sort_values('My_Rating', ascending=True)
-    
-    fig_r = px.bar(genre_rating, x='My_Rating', y='Genre', orientation='h',
-                   color='My_Rating', color_continuous_scale=['#333', '#fff'])
-    fig_r.update_layout(
-        plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
-        font=dict(color='#888', family="Manrope"),
-        xaxis_title="Avg Rating", yaxis_title=None,
-        coloraxis_showscale=False,
-        margin=dict(l=0, r=0, t=0, b=0)
-    )
-    st.plotly_chart(fig_r, use_container_width=True)
+    df_filtered['Cat'] = pd.cut(df_filtered['My_Rating'], bins=[0,4,7,10], labels=['Bad 🍅', 'Mid 😐', 'Good 🔥'])
+    rc = df_filtered.groupby(['My_Rating', 'Cat']).size().reset_index(name='Count')
+    fig_h = px.bar(rc, x='My_Rating', y='Count', color='Cat', color_discrete_map={'Bad 🍅':'#8B0000', 'Mid 😐':'#AA8800', 'Good 🔥':'#006400'})
+    fig_h.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', font=dict(color='#888'), showlegend=False, margin=dict(t=10,b=0), xaxis=dict(tickmode='linear', dtick=1))
+    st.plotly_chart(fig_h, use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-# ROW 2: CROSS-ANALYSIS (NEW!)
-st.markdown("### 🌪️ ENVIRONMENTAL CORRELATION")
-c_weather1, c_weather2 = st.columns(2)
+# ROW 2: CROSS-ANALYSIS (COLORFUL)
+st.markdown("### 🌪️ Deep Dive Analysis")
+c_w1, c_w2 = st.columns(2)
 
-with c_weather1:
-    st.markdown("**1. WHAT DO I WATCH WHEN IT RAINS?** (Genre vs Weather)")
+with c_w1:
+    st.markdown("**Weather vs Genre Preference**")
     st.markdown('<div class="chart-box">', unsafe_allow_html=True)
-    
-    # Stacked Bar: Weather vs Genre
-    cross_tab = df_filtered.groupby(['Weather', 'Genre']).size().reset_index(name='Count')
-    
-    fig_stack = px.bar(cross_tab, x="Weather", y="Count", color="Genre",
-                       color_discrete_sequence=px.colors.qualitative.Pastel)
-    fig_stack.update_layout(
-        plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
-        font=dict(color='#888'),
-        legend=dict(orientation="h", y=1.1, title=None),
-        margin=dict(t=20)
-    )
-    st.plotly_chart(fig_stack, use_container_width=True)
+    ct = df_filtered.groupby(['Weather', 'Genre']).size().reset_index(name='Count')
+    fig_s = px.bar(ct, x="Weather", y="Count", color="Genre", color_discrete_sequence=px.colors.qualitative.Vivid)
+    fig_s.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', font=dict(color='#888'), legend=dict(orientation="h", y=1.1, title=None), margin=dict(t=20))
+    st.plotly_chart(fig_s, use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-with c_weather2:
-    st.markdown("**2. BINGE HEATMAP** (Intensity by Day of Week)")
+with c_w2:
+    st.markdown("**Binge Heatmap (Day vs Month)**")
     st.markdown('<div class="chart-box">', unsafe_allow_html=True)
-    
-    # Heatmap: Day of Week vs Month
-    # Order days correctly
-    days_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-    heat_data = df_filtered.groupby(['DayOfWeek', 'Month']).size().reset_index(name='Count')
-    
-    fig_heat = px.density_heatmap(heat_data, x='Month', y='DayOfWeek', z='Count',
-                                  category_orders={'DayOfWeek': days_order},
-                                  color_continuous_scale=['#111', '#555', '#fff'])
-    fig_heat.update_layout(
-        plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
-        font=dict(color='#888'),
-        coloraxis_showscale=False,
-        margin=dict(t=0, b=0, l=0, r=0)
-    )
-    st.plotly_chart(fig_heat, use_container_width=True)
+    do = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+    hd = df_filtered.groupby(['DayOfWeek', 'Month']).size().reset_index(name='Count')
+    fig_hm = px.density_heatmap(hd, x='Month', y='DayOfWeek', z='Count', category_orders={'DayOfWeek': do}, color_continuous_scale='Redor')
+    fig_hm.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', font=dict(color='#888'), coloraxis_showscale=False, margin=dict(t=0,b=0,l=0,r=0))
+    st.plotly_chart(fig_hm, use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-# ROW 3: LISTS
+# ROW 3: LISTS (COLORFUL)
 cl1, cl2 = st.columns(2)
-
-def list_item(title, meta, score, color):
-    return f"""
-    <div style="border-bottom:1px solid #222; padding:12px 0; display:flex; justify-content:space-between; align-items:center;">
-        <div>
-            <div style="color:#fff; font-weight:600;">{title}</div>
-            <div style="color:#555; font-size:0.8rem;">{meta}</div>
-        </div>
-        <div style="background:{color}; color:#000; padding:4px 10px; border-radius:4px; font-weight:bold; font-size:0.9rem;">{score}</div>
-    </div>
-    """
-
 with cl1:
-    st.markdown("#### 🔥 CRITIC'S CHOICE (Top Rated)")
-    st.markdown('<div class="chart-box">', unsafe_allow_html=True)
+    st.markdown("### 🔥 Hall of Fame")
     top = df_filtered.sort_values('My_Rating', ascending=False).drop_duplicates('Title').head(5)
     for _, r in top.iterrows():
-        st.markdown(list_item(r['Title'], f"{r['Genre']} • {r['Weather']}", r['My_Rating'], "#fff"), unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown(f"""<div class="list-card top"><div><strong style="color:white;">{r['Title']}</strong><br><span style="color:#888; font-size:0.85rem;">{r['Genre']} • {r['Weather']}</span></div><div style="background:#46d369; color:#000; padding:4px 8px; border-radius:6px; font-weight:bold;">{r['My_Rating']}</div></div>""", unsafe_allow_html=True)
 
 with cl2:
-    st.markdown("#### 🧊 THE FLOP LIST (Lowest Rated)")
-    st.markdown('<div class="chart-box">', unsafe_allow_html=True)
+    st.markdown("### 🍅 Wall of Shame")
     flop = df_filtered.sort_values('My_Rating', ascending=True).drop_duplicates('Title').head(5)
     for _, r in flop.iterrows():
-        st.markdown(list_item(r['Title'], f"{r['Genre']} • {r['Weather']}", r['My_Rating'], "#555"), unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown(f"""<div class="list-card flop"><div><strong style="color:white;">{r['Title']}</strong><br><span style="color:#888; font-size:0.85rem;">{r['Genre']} • {r['Weather']}</span></div><div style="background:#E50914; color:#fff; padding:4px 8px; border-radius:6px; font-weight:bold;">{r['My_Rating']}</div></div>""", unsafe_allow_html=True)
 
-st.markdown("<div style='text-align:center; color:#333; margin-top:50px;'>NETFLIX ANALYTICS • ENGINEERING PROJECT 2024</div>", unsafe_allow_html=True)
+st.markdown("<br><center style='color:#555'>NETFLIX ANALYTICS • ENGINEERING PROJECT 2024</center>", unsafe_allow_html=True)
