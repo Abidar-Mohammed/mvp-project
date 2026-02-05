@@ -57,13 +57,14 @@ st.markdown("""
         box-shadow: 0 4px 20px rgba(0,0,0,0.3);
     }
 
+    /* LIST CARDS (POUR LE TOP/FLOP) */
     .list-card {
         background: rgba(255, 255, 255, 0.03);
         border-radius: 8px; padding: 12px; margin-bottom: 8px;
         border-left: 3px solid #333; display: flex; justify-content: space-between; align-items: center;
     }
-    .list-card.top { border-left-color: #46d369; }
-    .list-card.flop { border-left-color: #E50914; }
+    .list-card.top { border-left-color: #46d369; } /* Vert */
+    .list-card.flop { border-left-color: #E50914; } /* Rouge */
 
     div[data-testid="stMetric"] { display: none; }
     #MainMenu {visibility: hidden;} footer {visibility: hidden;}
@@ -202,7 +203,7 @@ with col2:
     st.plotly_chart(fig_r, use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-# ROW 2: NEW DASHBOARDS
+# ROW 2: BEHAVIORAL TRENDS
 st.markdown("### 🧬 Behavioral Trends")
 c_evo, c_day, c_type = st.columns([2, 1, 1])
 
@@ -240,7 +241,7 @@ with c_type:
         st.write("Data Type missing")
     st.markdown('</div>', unsafe_allow_html=True)
 
-# ROW 3: CONTEXT
+# ROW 3: CONTEXT ANALYSIS
 st.markdown("### 🌪️ Context Analysis")
 c_w1, c_w2 = st.columns(2)
 
@@ -262,7 +263,7 @@ with c_w2:
     st.plotly_chart(fig_hm, use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-# --- NOUVELLE SECTION AJOUTÉE : DEEP DIVE NOTES & MÉTÉO ---
+# --- NOUVELLE SECTION : DEEP DIVE NOTES & MÉTÉO ---
 
 st.markdown("### ⭐ Ratings & Weather Deep Dive")
 col_rate, col_temp = st.columns(2)
@@ -271,14 +272,13 @@ with col_rate:
     st.markdown("**My Rating Distribution (Quality Check)**")
     st.markdown('<div class="chart-box">', unsafe_allow_html=True)
     
-    # Histogramme simple et efficace des notes
     rating_counts = df_filtered['My_Rating'].value_counts().reset_index()
     rating_counts.columns = ['Rating', 'Count']
     rating_counts = rating_counts.sort_values('Rating')
 
     fig_hist = px.bar(rating_counts, x='Rating', y='Count', 
                       color='Rating',
-                      color_continuous_scale='RdYlGn', # Rouge -> Vert
+                      color_continuous_scale='RdYlGn',
                       text_auto=True)
     
     fig_hist.update_layout(
@@ -295,12 +295,11 @@ with col_temp:
     st.markdown("**Temperature vs. Viewing Volume (Scatter)**")
     st.markdown('<div class="chart-box">', unsafe_allow_html=True)
     
-    # On groupe par jour pour voir : Température du jour VS Combien d'épisodes vus
     daily_stats = df_filtered.groupby('Date').agg({'Title': 'count', 'Temp_C': 'mean'}).reset_index()
     
     fig_scatter = px.scatter(daily_stats, x="Temp_C", y="Title", 
                              size="Title", color="Temp_C",
-                             color_continuous_scale="Turbo") # Couleurs chaudes/froides
+                             color_continuous_scale="Turbo")
     
     fig_scatter.update_layout(
         plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
@@ -312,5 +311,40 @@ with col_temp:
     st.plotly_chart(fig_scatter, use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
+# --- DERNIERE SECTION : TOP & FLOP (AJOUTÉ COMME DEMANDÉ) ---
+st.markdown("### 🏆 Hall of Fame vs Wall of Shame")
+cl1, cl2 = st.columns(2)
+
+with cl1:
+    st.markdown("#### 🔥 Top 5 Best Rated")
+    top = df_filtered.sort_values('My_Rating', ascending=False).drop_duplicates('Title').head(5)
+    for _, r in top.iterrows():
+        st.markdown(f"""
+        <div class="list-card top">
+            <div>
+                <strong style="color:white;">{r['Title']}</strong><br>
+                <span style="color:#888; font-size:0.85rem;">{r['Genre']} • {r['Weather']}</span>
+            </div>
+            <div style="background:#46d369; color:#000; padding:4px 8px; border-radius:6px; font-weight:bold;">
+                {r['My_Rating']}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+with cl2:
+    st.markdown("#### 🍅 Top 5 Worst Rated")
+    flop = df_filtered.sort_values('My_Rating', ascending=True).drop_duplicates('Title').head(5)
+    for _, r in flop.iterrows():
+        st.markdown(f"""
+        <div class="list-card flop">
+            <div>
+                <strong style="color:white;">{r['Title']}</strong><br>
+                <span style="color:#888; font-size:0.85rem;">{r['Genre']} • {r['Weather']}</span>
+            </div>
+            <div style="background:#E50914; color:#fff; padding:4px 8px; border-radius:6px; font-weight:bold;">
+                {r['My_Rating']}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
 st.markdown("<br><center style='color:#555'>NETFLIX ANALYTICS • 2024</center>", unsafe_allow_html=True)
