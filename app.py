@@ -108,7 +108,7 @@ st.markdown("""
 # --- 3. DATA ENGINE ---
 @st.cache_data
 def load_data():
-    GITHUB_URL = "https://raw.githubusercontent.com/Abidar-Mohammed/mvp-project/main/NetflixHistory4.csv"
+    GITHUB_URL = "https://raw.githubusercontent.com/Abidar-Mohammed/mvp-project/main/NetflixHistory.csv"
     try:
         try: df = pd.read_csv(GITHUB_URL)
         except: df = pd.read_csv(GITHUB_URL, sep=';')
@@ -399,3 +399,4 @@ with cl2:
         </div>""", unsafe_allow_html=True)
 
 st.markdown("<br><br><center style='color:#555; font-family:Outfit;'>NETFLIX WATCH HISTORY ANALYTICS • 2024-2025</center>", unsafe_allow_html=True)
+
