@@ -77,36 +77,31 @@ def load_data():
     GITHUB_URL = "https://raw.githubusercontent.com/Abidar-Mohammed/mvp-project/main/NetflixHistory4.csv"
     
     try:
-        # Lecture flexible (virgule ou point-virgule)
         try:
             df = pd.read_csv(GITHUB_URL)
         except:
             df = pd.read_csv(GITHUB_URL, sep=';')
 
-        # Conversion Date (Robustesse)
         df['Date'] = pd.to_datetime(df['Date'], format="%d/%m/%Y", errors='coerce')
         if df['Date'].isna().all():
              df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
         
-        # Suppression des lignes sans date valide
         df = df.dropna(subset=['Date'])
 
-        # --- REPARATION AUTOMATIQUE (Si colonnes manquantes) ---
         if 'Genre' not in df.columns: df['Genre'] = 'Drama'
         if 'My_Rating' not in df.columns: df['My_Rating'] = np.random.randint(5, 11, size=len(df))
         if 'Weather' not in df.columns: df['Weather'] = 'Sunny'
         if 'Temp_C' not in df.columns: df['Temp_C'] = 15
 
-        # Calcul Durée Intelligent
         def get_duration(row):
             t = str(row.get('Title', '')).lower()
             g = str(row.get('Genre', '')).lower()
             is_show = 'saison' in t or 'season' in t or 'episode' in t or ':' in t
             
-            if not is_show: return 105 # Film
+            if not is_show: return 105 
             if 'anime' in g: return 24
             if 'comedy' in g: return 22
-            return 50 # Drama
+            return 50 
 
         if 'Duration_Mins' not in df.columns:
             df['Duration_Mins'] = df.apply(get_duration, axis=1)
@@ -121,11 +116,10 @@ def load_data():
 df = load_data()
 
 if df.empty:
-    st.error("🚨 Impossible de charger les données. Vérifie le lien GitHub dans le code (Ligne 77).")
+    st.error("🚨 Impossible de charger les données.")
     st.stop()
 
-# --- 4. SÉCURISATION TEMPORELLE (CRUCIAL POUR LE BUG) ---
-# On s'assure que ces colonnes existent ICI, hors de la fonction cachée
+# --- 4. SÉCURISATION TEMPORELLE ---
 if 'MonthYear' not in df.columns:
     df['MonthYear'] = df['Date'].dt.to_period('M').astype(str)
 if 'Month' not in df.columns:
@@ -225,7 +219,6 @@ with c_day:
     st.markdown("**Day Preference**")
     st.markdown('<div class="chart-box">', unsafe_allow_html=True)
     days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-    # Sécurisation du tri des jours
     day_counts = df_filtered['DayOfWeek'].value_counts()
     day_data = pd.DataFrame({'Day': days})
     day_data['Count'] = day_data['Day'].map(day_counts).fillna(0)
@@ -247,7 +240,7 @@ with c_type:
         st.write("Data Type missing")
     st.markdown('</div>', unsafe_allow_html=True)
 
-# ROW 3: CONTEXT (C'est ici que ça plantait, maintenant c'est réparé)
+# ROW 3: CONTEXT
 st.markdown("### 🌪️ Context Analysis")
 c_w1, c_w2 = st.columns(2)
 
@@ -268,5 +261,56 @@ with c_w2:
     fig_hm.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', font=dict(color='#888'), coloraxis_showscale=False)
     st.plotly_chart(fig_hm, use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)
+
+# --- NOUVELLE SECTION AJOUTÉE : DEEP DIVE NOTES & MÉTÉO ---
+
+st.markdown("### ⭐ Ratings & Weather Deep Dive")
+col_rate, col_temp = st.columns(2)
+
+with col_rate:
+    st.markdown("**My Rating Distribution (Quality Check)**")
+    st.markdown('<div class="chart-box">', unsafe_allow_html=True)
+    
+    # Histogramme simple et efficace des notes
+    rating_counts = df_filtered['My_Rating'].value_counts().reset_index()
+    rating_counts.columns = ['Rating', 'Count']
+    rating_counts = rating_counts.sort_values('Rating')
+
+    fig_hist = px.bar(rating_counts, x='Rating', y='Count', 
+                      color='Rating',
+                      color_continuous_scale='RdYlGn', # Rouge -> Vert
+                      text_auto=True)
+    
+    fig_hist.update_layout(
+        plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
+        font=dict(color='#888'),
+        coloraxis_showscale=False,
+        xaxis=dict(tickmode='linear', dtick=1),
+        yaxis_title="Number of Titles"
+    )
+    st.plotly_chart(fig_hist, use_container_width=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+with col_temp:
+    st.markdown("**Temperature vs. Viewing Volume (Scatter)**")
+    st.markdown('<div class="chart-box">', unsafe_allow_html=True)
+    
+    # On groupe par jour pour voir : Température du jour VS Combien d'épisodes vus
+    daily_stats = df_filtered.groupby('Date').agg({'Title': 'count', 'Temp_C': 'mean'}).reset_index()
+    
+    fig_scatter = px.scatter(daily_stats, x="Temp_C", y="Title", 
+                             size="Title", color="Temp_C",
+                             color_continuous_scale="Turbo") # Couleurs chaudes/froides
+    
+    fig_scatter.update_layout(
+        plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
+        font=dict(color='#888'),
+        xaxis_title="Temperature (°C)",
+        yaxis_title="Episodes Watched per Day",
+        coloraxis_showscale=False
+    )
+    st.plotly_chart(fig_scatter, use_container_width=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
 
 st.markdown("<br><center style='color:#555'>NETFLIX ANALYTICS • 2024</center>", unsafe_allow_html=True)
