@@ -108,10 +108,9 @@ def load_data():
         if 'Duration_Mins' not in df.columns or 'Type' not in df.columns:
             df[['Duration_Mins', 'Type']] = df.apply(get_metadata, axis=1)
 
-        # Extraction Nom Série (Pour le taux d'abandon)
+        # Extraction Nom Série (Pour le Binge Streak)
         def get_show_name(row):
             if row['Type'] == 'Movie': return row['Title']
-            # On nettoie le titre pour garder juste le nom de la série
             return row['Title'].split(':')[0]
         
         df['ShowName'] = df.apply(get_show_name, axis=1)
@@ -175,7 +174,7 @@ with st.expander("🛠️ TECHNICAL METHODOLOGY"):
         <p><strong>1. Data Ingestion:</strong> Parsing viewing history from Netflix CSV export.</p>
         <p><strong>2. Enrichment:</strong> Merging with Open-Meteo API (Historical Weather for Paris) and estimating content metadata.</p>
         <p><strong>3. Advanced Metrics:</strong> 
-           <br>- <em>Session Abandonment:</em> Based on <strong>Consecutive Streaks</strong>. If a viewing session of a series is interrupted (by another show or movie) before reaching 4 episodes, it is classified as 'Interrupted/Abandoned'.
+           <br>- <em>Binge Streak:</em> Calculated by identifying consecutive blocks of the same show. A block ends when the show title changes. We compute the average length (episodes) of these blocks per genre.
            <br>- <em>Seasonality:</em> Grouping timestamps by meteorological seasons.
         </p>
     </div>
@@ -292,7 +291,6 @@ with col_rate:
     st.markdown("**Rating Spread by Genre (Box Plot)**")
     st.markdown('<div class="chart-box">', unsafe_allow_html=True)
     
-    # BOX PLOT
     genre_order = df_filtered.groupby('Genre')['My_Rating'].median().sort_values().index
     fig_box = px.box(df_filtered, x="Genre", y="My_Rating", 
                      color="Genre", 
@@ -327,42 +325,38 @@ with col_temp:
     st.plotly_chart(fig_scatter, use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-# --- DERNIERE SECTION : ABANDON (LOGIQUE CONSECUTIVE) & SAISONNALITÉ ---
-st.markdown("### 🧠 Advanced Metrics (Session Hook & Seasons)")
+# --- DERNIERE SECTION : BINGE STREAK & SAISONNALITÉ ---
+st.markdown("### 🧠 Advanced Metrics (Streak & Seasons)")
 col_hook, col_season = st.columns(2)
 
 with col_hook:
-    st.markdown("**Session Interruption Rate** (< 4 Eps Consecutive)")
+    st.markdown("**Average Consecutive Episodes by Genre** (Binge Velocity)")
     st.markdown('<div class="chart-box">', unsafe_allow_html=True)
     
-    # LOGIQUE DE SESSION CONSECUTIVE
-    # 1. On filtre les séries
+    # 1. Filtre Séries
     series_df = df_filtered[df_filtered['Type'] == 'Series'].copy()
     
     if not series_df.empty:
-        # 2. On crée des "Blocs" consécutifs
-        # Si la ligne N a un nom différent de N-1, c'est un nouveau bloc
+        # 2. Création des blocs consécutifs (si le titre change, nouveau bloc)
         series_df['BlockID'] = (series_df['ShowName'] != series_df['ShowName'].shift()).cumsum()
         
-        # 3. On compte la taille de chaque bloc
-        streak_stats = series_df.groupby(['Genre', 'BlockID']).size().reset_index(name='StreakLength')
+        # 3. Calcul de la taille de chaque bloc
+        streak_data = series_df.groupby(['Genre', 'BlockID']).size().reset_index(name='StreakLength')
         
-        # 4. Définition du statut : Abandon/Interruption si < 4 épisodes à la suite
-        streak_stats['Status'] = streak_stats['StreakLength'].apply(lambda x: 'Interrupted (<4)' if x < 2 else 'Hooked (4+)')
+        # 4. Moyenne par Genre
+        avg_streak = streak_data.groupby('Genre')['StreakLength'].mean().reset_index().sort_values('StreakLength', ascending=False)
         
-        # 5. Agrégation pour le graphique
-        final_stats = streak_stats.groupby(['Genre', 'Status']).size().reset_index(name='Count')
+        fig_streak = px.bar(avg_streak, x="StreakLength", y="Genre", orientation='h',
+                            text_auto='.1f',
+                            color="StreakLength", color_continuous_scale="Reds")
         
-        fig_funnel = px.bar(final_stats, x="Genre", y="Count", color="Status",
-                            color_discrete_map={'Interrupted (<4)': '#E50914', 'Hooked (4+)': '#46d369'},
-                            barmode='stack')
-        
-        fig_funnel.update_layout(
+        fig_streak.update_layout(
             plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
             font=dict(color='#888'),
-            xaxis_title=None, legend=dict(orientation="h", y=1.1, title=None)
+            xaxis_title="Avg Episodes in a Row", yaxis_title=None,
+            coloraxis_showscale=False
         )
-        st.plotly_chart(fig_funnel, use_container_width=True)
+        st.plotly_chart(fig_streak, use_container_width=True)
     else:
         st.info("No series data to analyze streaks.")
     st.markdown('</div>', unsafe_allow_html=True)
@@ -372,7 +366,6 @@ with col_season:
     st.markdown('<div class="chart-box">', unsafe_allow_html=True)
     
     season_stats = df_filtered.groupby(['Season', 'Genre']).size().reset_index(name='Count')
-    
     fig_season = px.bar(season_stats, x="Season", y="Count", color="Genre",
                         category_orders={"Season": ['❄️ Winter', '🌱 Spring', '☀️ Summer', '🍂 Autumn']},
                         color_discrete_sequence=px.colors.qualitative.Vivid,
@@ -423,5 +416,3 @@ with cl2:
         """, unsafe_allow_html=True)
 
 st.markdown("<br><center style='color:#555'>NETFLIX ANALYTICS • 2024</center>", unsafe_allow_html=True)
-
-
